@@ -24,12 +24,21 @@ class FocusDashboardPage extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Painel de Controle', style: theme.textTheme.headlineSmall),
+                      Text(
+                        'Painel de Controle',
+                        style: theme.textTheme.headlineSmall,
+                      ),
                       const SizedBox(height: 4),
-                      Text('Bom dia, Alex. Vamos focar?', style: theme.textTheme.bodyMedium),
+                      Text(
+                        'Bom dia, Alex. Vamos focar?',
+                        style: theme.textTheme.bodyMedium,
+                      ),
                     ],
                   ),
-                  IconButton(onPressed: () {}, icon: const Icon(Icons.notifications)),
+                  IconButton(
+                    onPressed: () {},
+                    icon: const Icon(Icons.notifications),
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
@@ -43,8 +52,14 @@ class FocusDashboardPage extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 8),
-              _TaskPreview(title: 'Revisar feedbacks', subtitle: '10:30 • 10 min'),
-              _TaskPreview(title: 'Sincronização semanal', subtitle: '11:00 • 30 min'),
+              _TaskPreview(
+                title: 'Revisar feedbacks',
+                subtitle: '10:30 • 10 min',
+              ),
+              _TaskPreview(
+                title: 'Sincronização semanal',
+                subtitle: '11:00 • 30 min',
+              ),
             ],
           ),
         ),
@@ -61,21 +76,34 @@ class _FocusCard extends StatelessWidget {
       builder: (ctx, state) {
         return Card(
           elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('Tarefa em Foco', style: theme.textTheme.labelLarge?.copyWith(color: Brand.primary)),
+                Text(
+                  'Tarefa em Foco',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: Brand.primary,
+                  ),
+                ),
                 const SizedBox(height: 8),
-                Text('Concluir Relatório do Projeto', style: theme.textTheme.titleLarge),
+                Text(
+                  'Concluir Relatório do Projeto',
+                  style: theme.textTheme.titleLarge,
+                ),
                 const SizedBox(height: 4),
                 Row(
                   children: [
                     const Icon(Icons.schedule, size: 16),
                     const SizedBox(width: 4),
-                    Text('Estimativa: 25 min', style: theme.textTheme.bodySmall),
+                    Text(
+                      'Estimativa: 25 min',
+                      style: theme.textTheme.bodySmall,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -90,7 +118,9 @@ class _FocusCard extends StatelessWidget {
                 ElevatedButton.icon(
                   onPressed: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const FocusSessionPage()),
+                      MaterialPageRoute(
+                        builder: (_) => const FocusSessionPage(),
+                      ),
                     );
                   },
                   style: ElevatedButton.styleFrom(

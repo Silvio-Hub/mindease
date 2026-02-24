@@ -3,15 +3,19 @@ import 'package:mindease/domain/entities/task.dart';
 import 'package:mindease/domain/repositories/task_repository.dart';
 
 abstract class TasksEvent {}
+
 class LoadTasks extends TasksEvent {}
+
 class AddTask extends TasksEvent {
   final Task task;
   AddTask(this.task);
 }
+
 class DeleteTask extends TasksEvent {
   final String id;
   DeleteTask(this.id);
 }
+
 class MoveTask extends TasksEvent {
   final String id;
   final bool inProgress;

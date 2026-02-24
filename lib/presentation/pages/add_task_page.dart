@@ -25,9 +25,7 @@ class _AddTaskPageState extends State<AddTaskPage> {
       ),
       body: SafeArea(
         child: Container(
-          decoration: const BoxDecoration(
-            color: Color(0xFFF9FAFF),
-          ),
+          decoration: const BoxDecoration(color: Color(0xFFF9FAFF)),
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
@@ -37,20 +35,36 @@ class _AddTaskPageState extends State<AddTaskPage> {
                 controller: titleCtrl,
                 decoration: InputDecoration(
                   hintText: 'Ex: Dobrar as roupas',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   filled: true,
                 ),
               ),
               const SizedBox(height: 16),
-              Text('Lista de Itens (máx. 3)', style: theme.textTheme.titleMedium),
-              Text('Divida em até 3 passos simples para manter o foco', style: theme.textTheme.bodySmall),
+              Text(
+                'Lista de Itens (máx. 3)',
+                style: theme.textTheme.titleMedium,
+              ),
+              Text(
+                'Divida em até 3 passos simples para manter o foco',
+                style: theme.textTheme.bodySmall,
+              ),
               const SizedBox(height: 8),
               for (int i = 0; i < 3; i++)
                 Card(
                   elevation: 1,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: ListTile(
-                    leading: Checkbox(value: false, onChanged: null, shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4)))),
+                    leading: Checkbox(
+                      value: false,
+                      onChanged: null,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                      ),
+                    ),
                     title: TextField(
                       controller: stepCtrls[i],
                       decoration: InputDecoration(
@@ -73,10 +87,26 @@ class _AddTaskPageState extends State<AddTaskPage> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  _EstimateChip(label: '5 MIN', selected: estimateMinutes == 5, onSelected: () => setState(() => estimateMinutes = 5)),
-                  _EstimateChip(label: '15 MIN', selected: estimateMinutes == 15, onSelected: () => setState(() => estimateMinutes = 15)),
-                  _EstimateChip(label: '30 MIN', selected: estimateMinutes == 30, onSelected: () => setState(() => estimateMinutes = 30)),
-                  _EstimateChip(label: '1 HORA', selected: estimateMinutes == 60, onSelected: () => setState(() => estimateMinutes = 60)),
+                  _EstimateChip(
+                    label: '5 MIN',
+                    selected: estimateMinutes == 5,
+                    onSelected: () => setState(() => estimateMinutes = 5),
+                  ),
+                  _EstimateChip(
+                    label: '15 MIN',
+                    selected: estimateMinutes == 15,
+                    onSelected: () => setState(() => estimateMinutes = 15),
+                  ),
+                  _EstimateChip(
+                    label: '30 MIN',
+                    selected: estimateMinutes == 30,
+                    onSelected: () => setState(() => estimateMinutes = 30),
+                  ),
+                  _EstimateChip(
+                    label: '1 HORA',
+                    selected: estimateMinutes == 60,
+                    onSelected: () => setState(() => estimateMinutes = 60),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
@@ -91,7 +121,10 @@ class _AddTaskPageState extends State<AddTaskPage> {
                   onPressed: () {
                     Navigator.pop(context, {
                       'title': titleCtrl.text,
-                      'steps': stepCtrls.map((c) => c.text).where((s) => s.isNotEmpty).toList(),
+                      'steps': stepCtrls
+                          .map((c) => c.text)
+                          .where((s) => s.isNotEmpty)
+                          .toList(),
                       'estimate': estimateMinutes,
                     });
                   },
@@ -100,7 +133,12 @@ class _AddTaskPageState extends State<AddTaskPage> {
                 ),
               ),
               const SizedBox(height: 12),
-              Center(child: Text('MindEase Focus • Um passo de cada vez.', style: theme.textTheme.bodySmall)),
+              Center(
+                child: Text(
+                  'MindEase Focus • Um passo de cada vez.',
+                  style: theme.textTheme.bodySmall,
+                ),
+              ),
             ],
           ),
         ),
@@ -113,7 +151,11 @@ class _EstimateChip extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onSelected;
-  const _EstimateChip({required this.label, required this.selected, required this.onSelected});
+  const _EstimateChip({
+    required this.label,
+    required this.selected,
+    required this.onSelected,
+  });
   @override
   Widget build(BuildContext context) {
     return ChoiceChip(

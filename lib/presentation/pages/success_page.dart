@@ -24,7 +24,10 @@ class SuccessPage extends StatelessWidget {
                 const SizedBox(height: 16),
                 Text('Ótimo trabalho.', style: theme.textTheme.headlineSmall),
                 const SizedBox(height: 8),
-                Text('Que tal uma pausa agora?', style: theme.textTheme.bodyMedium),
+                Text(
+                  'Que tal uma pausa agora?',
+                  style: theme.textTheme.bodyMedium,
+                ),
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () {},
@@ -34,7 +37,9 @@ class SuccessPage extends StatelessWidget {
                 OutlinedButton(
                   onPressed: () {
                     Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (_) => const HomeShell(initialIndex: 1)),
+                      MaterialPageRoute(
+                        builder: (_) => const HomeShell(initialIndex: 1),
+                      ),
                       (route) => false,
                     );
                   },

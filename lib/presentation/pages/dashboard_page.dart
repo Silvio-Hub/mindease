@@ -18,12 +18,17 @@ class DashboardPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 ElevatedButton(
-                  onPressed: () => ctx.read<AccessibilityCubit>().setFocusMode(!state.focusMode),
-                  child: Text(state.focusMode ? 'Desativar Foco' : 'Ativar Foco'),
+                  onPressed: () => ctx.read<AccessibilityCubit>().setFocusMode(
+                    !state.focusMode,
+                  ),
+                  child: Text(
+                    state.focusMode ? 'Desativar Foco' : 'Ativar Foco',
+                  ),
                 ),
                 SwitchListTile(
                   value: state.highContrast,
-                  onChanged: (v) => ctx.read<AccessibilityCubit>().setHighContrast(v),
+                  onChanged: (v) =>
+                      ctx.read<AccessibilityCubit>().setHighContrast(v),
                   title: const Text('Alto Contraste'),
                 ),
                 const SizedBox(height: 12),

@@ -35,7 +35,10 @@ class _HomeShellState extends State<HomeShell> {
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.center_focus_strong), label: 'Foco'),
+          NavigationDestination(
+            icon: Icon(Icons.center_focus_strong),
+            label: 'Foco',
+          ),
           NavigationDestination(icon: Icon(Icons.checklist), label: 'Tarefas'),
           NavigationDestination(icon: Icon(Icons.bar_chart), label: 'Dados'),
           NavigationDestination(icon: Icon(Icons.settings), label: 'Ajustes'),

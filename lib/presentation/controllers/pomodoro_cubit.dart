@@ -18,29 +18,51 @@ class PomodoroCubit extends Cubit<PomodoroState> {
   Timer? _timer;
 
   PomodoroCubit({required this.work, required this.rest})
-      : super(PomodoroState(remaining: work, isWorkPhase: true, running: false));
+    : super(PomodoroState(remaining: work, isWorkPhase: true, running: false));
 
   void start() {
     _timer?.cancel();
-    emit(PomodoroState(remaining: state.remaining, isWorkPhase: state.isWorkPhase, running: true));
+    emit(
+      PomodoroState(
+        remaining: state.remaining,
+        isWorkPhase: state.isWorkPhase,
+        running: true,
+      ),
+    );
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
       final r = state.remaining - const Duration(seconds: 1);
       if (r <= Duration.zero) {
         if (state.isWorkPhase) {
           // [A11Y-Cog] Transição previsível entre fases, sem animações
-          emit(PomodoroState(remaining: rest, isWorkPhase: false, running: true));
+          emit(
+            PomodoroState(remaining: rest, isWorkPhase: false, running: true),
+          );
         } else {
-          emit(PomodoroState(remaining: work, isWorkPhase: true, running: true));
+          emit(
+            PomodoroState(remaining: work, isWorkPhase: true, running: true),
+          );
         }
       } else {
-        emit(PomodoroState(remaining: r, isWorkPhase: state.isWorkPhase, running: true));
+        emit(
+          PomodoroState(
+            remaining: r,
+            isWorkPhase: state.isWorkPhase,
+            running: true,
+          ),
+        );
       }
     });
   }
 
   void pause() {
     _timer?.cancel();
-    emit(PomodoroState(remaining: state.remaining, isWorkPhase: state.isWorkPhase, running: false));
+    emit(
+      PomodoroState(
+        remaining: state.remaining,
+        isWorkPhase: state.isWorkPhase,
+        running: false,
+      ),
+    );
   }
 
   void reset() {

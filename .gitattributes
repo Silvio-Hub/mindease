@@ -1,0 +1,14 @@
+* text=auto
+*.dart text
+*.html text
+*.css text
+*.json text
+*.yaml text
+*.yml text
+*.md text
+*.xml text
+*.properties text
+*.gradle text
+*.gradle.kts text
+gradlew text eol=lf
+*.bat text eol=crlf

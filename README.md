@@ -2,6 +2,10 @@
 
 A new Flutter project.
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details on the CI process and local development setup.
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
