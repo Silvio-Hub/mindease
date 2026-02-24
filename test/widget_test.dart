@@ -5,12 +5,44 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
+import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get_it/get_it.dart';
+import 'package:mocktail/mocktail.dart';
 
 import 'package:mindease/main.dart';
+import 'package:mindease/presentation/controllers/accessibility_cubit.dart';
+
+class MockAccessibilityCubit extends MockCubit<AccessibilityState>
+    implements AccessibilityCubit {}
 
 void main() {
+  late MockAccessibilityCubit mockAccessibilityCubit;
+
+  setUp(() {
+    mockAccessibilityCubit = MockAccessibilityCubit();
+    when(() => mockAccessibilityCubit.state).thenReturn(
+      const AccessibilityState(
+        focusMode: false,
+        highContrast: false,
+        fontScale: 1.0,
+        spacingScale: 1.0,
+        summaryMode: true,
+        animationsEnabled: true,
+      ),
+    );
+    when(() => mockAccessibilityCubit.init()).thenAnswer((_) async {});
+
+    GetIt.instance.registerSingleton<AccessibilityCubit>(
+      mockAccessibilityCubit,
+    );
+  });
+
+  tearDown(() {
+    GetIt.instance.reset();
+  });
+
   testWidgets('App builds', (WidgetTester tester) async {
     await tester.pumpWidget(const MindEaseApp());
     expect(find.byType(MaterialApp), findsOneWidget);
