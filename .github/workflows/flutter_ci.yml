@@ -34,18 +34,25 @@ jobs:
       - name: Run code generation
         run: dart run build_runner build --delete-conflicting-outputs
 
+      # Static analysis
       - name: Analyze code
         run: flutter analyze
 
+      # Unit Tests
       - name: Run tests
         run: flutter test
 
+      # Create local.properties (Crucial for Android Build)
       - name: Create local.properties
         run: echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
 
-      - name: Build APK (Production)
+      # Fix gradlew permission
+      - name: Fix gradlew permission
         run: |
-          sudo apt-get update && sudo apt-get install -y dos2unix
+          sudo apt-get update
+          sudo apt-get install -y dos2unix
           dos2unix android/gradlew
           chmod +x android/gradlew
-          flutter build apk --debug --flavor production --target lib/app/main_production.dart
+
+      - name: Build APK (Production)
+        run: flutter build apk --debug --flavor production --target lib/app/main_production.dart
