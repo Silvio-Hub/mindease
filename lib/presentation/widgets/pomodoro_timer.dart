@@ -1,0 +1,59 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mindease/presentation/controllers/pomodoro_cubit.dart';
+
+class PomodoroTimer extends StatelessWidget {
+  final Duration work;
+  final Duration rest;
+  const PomodoroTimer({super.key, required this.work, required this.rest});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => PomodoroCubit(work: work, rest: rest),
+      child: BlocBuilder<PomodoroCubit, PomodoroState>(
+        builder: (ctx, state) {
+          final minutes = state.remaining.inMinutes.remainder(60).toString().padLeft(2, '0');
+          final seconds = state.remaining.inSeconds.remainder(60).toString().padLeft(2, '0');
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                state.isWorkPhase ? 'Foco' : 'Pausa',
+                textAlign: TextAlign.center,
+                // [A11Y-Cog] Copy curto e claro reforça previsibilidade
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '$minutes:$seconds',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.displaySmall,
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () => ctx.read<PomodoroCubit>().start(),
+                    child: const Text('Iniciar'),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: () => ctx.read<PomodoroCubit>().pause(),
+                    child: const Text('Pausar'),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: () => ctx.read<PomodoroCubit>().reset(),
+                    child: const Text('Resetar'),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
