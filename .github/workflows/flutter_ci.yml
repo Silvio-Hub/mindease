@@ -28,6 +28,9 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Check format
+        run: dart format --output=none --set-exit-if-changed .
+
       - name: Run code generation
         run: dart run build_runner build --delete-conflicting-outputs
 
@@ -38,4 +41,6 @@ jobs:
         run: flutter test
 
       - name: Build APK (Production)
-        run: flutter build apk --debug --flavor production --target lib/app/main_production.dart
+        run: |
+          chmod +x android/gradlew
+          flutter build apk --debug --flavor production --target lib/app/main_production.dart

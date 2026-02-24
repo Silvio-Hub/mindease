@@ -41,8 +41,14 @@ class AccessibilityState extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [focusMode, highContrast, fontScale, spacingScale, summaryMode, animationsEnabled];
+  List<Object?> get props => [
+    focusMode,
+    highContrast,
+    fontScale,
+    spacingScale,
+    summaryMode,
+    animationsEnabled,
+  ];
 }
 
 class AccessibilityCubit extends Cubit<AccessibilityState> {
@@ -54,25 +60,29 @@ class AccessibilityCubit extends Cubit<AccessibilityState> {
     required this.updateContrast,
     required this.savePreferences,
     required this.loadPreferences,
-  }) : super(const AccessibilityState(
-          focusMode: false,
-          highContrast: false,
-          fontScale: 1.0,
-          spacingScale: 1.0,
-          summaryMode: true,
-          animationsEnabled: true,
-        ));
+  }) : super(
+         const AccessibilityState(
+           focusMode: false,
+           highContrast: false,
+           fontScale: 1.0,
+           spacingScale: 1.0,
+           summaryMode: true,
+           animationsEnabled: true,
+         ),
+       );
 
   Future<void> init() async {
     final prefs = await loadPreferences();
-    emit(AccessibilityState(
-      focusMode: prefs.focusMode,
-      highContrast: prefs.highContrast,
-      fontScale: prefs.fontScale,
-      spacingScale: prefs.spacingScale,
-      summaryMode: prefs.summaryMode,
-      animationsEnabled: prefs.animationsEnabled,
-    ));
+    emit(
+      AccessibilityState(
+        focusMode: prefs.focusMode,
+        highContrast: prefs.highContrast,
+        fontScale: prefs.fontScale,
+        spacingScale: prefs.spacingScale,
+        summaryMode: prefs.summaryMode,
+        animationsEnabled: prefs.animationsEnabled,
+      ),
+    );
   }
 
   Future<void> setHighContrast(bool on) async {

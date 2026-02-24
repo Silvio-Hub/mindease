@@ -21,7 +21,10 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
           children: [
             Row(
               children: [
-                IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
+                ),
                 const SizedBox(width: 8),
                 const Text('Adicionar Nova Tarefa'),
               ],
@@ -30,7 +33,9 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
             const Text('Título da Tarefa'),
             TextField(
               controller: titleCtrl,
-              decoration: const InputDecoration(hintText: 'Ex: Dobrar as roupas'),
+              decoration: const InputDecoration(
+                hintText: 'Ex: Dobrar as roupas',
+              ),
             ),
             const SizedBox(height: 12),
             const Text('Lista de Itens (máx. 3)'),
@@ -47,10 +52,26 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
             Wrap(
               spacing: 8,
               children: [
-                ChoiceChip(label: const Text('5 MIN'), selected: estimateMinutes == 5, onSelected: (_) => setState(() => estimateMinutes = 5)),
-                ChoiceChip(label: const Text('15 MIN'), selected: estimateMinutes == 15, onSelected: (_) => setState(() => estimateMinutes = 15)),
-                ChoiceChip(label: const Text('30 MIN'), selected: estimateMinutes == 30, onSelected: (_) => setState(() => estimateMinutes = 30)),
-                ChoiceChip(label: const Text('1 HORA'), selected: estimateMinutes == 60, onSelected: (_) => setState(() => estimateMinutes = 60)),
+                ChoiceChip(
+                  label: const Text('5 MIN'),
+                  selected: estimateMinutes == 5,
+                  onSelected: (_) => setState(() => estimateMinutes = 5),
+                ),
+                ChoiceChip(
+                  label: const Text('15 MIN'),
+                  selected: estimateMinutes == 15,
+                  onSelected: (_) => setState(() => estimateMinutes = 15),
+                ),
+                ChoiceChip(
+                  label: const Text('30 MIN'),
+                  selected: estimateMinutes == 30,
+                  onSelected: (_) => setState(() => estimateMinutes = 30),
+                ),
+                ChoiceChip(
+                  label: const Text('1 HORA'),
+                  selected: estimateMinutes == 60,
+                  onSelected: (_) => setState(() => estimateMinutes = 60),
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -58,7 +79,10 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
               onPressed: () {
                 Navigator.pop(context, {
                   'title': titleCtrl.text,
-                  'steps': stepCtrls.map((c) => c.text).where((s) => s.isNotEmpty).toList(),
+                  'steps': stepCtrls
+                      .map((c) => c.text)
+                      .where((s) => s.isNotEmpty)
+                      .toList(),
                   'estimate': estimateMinutes,
                 });
               },

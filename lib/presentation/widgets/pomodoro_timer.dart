@@ -13,8 +13,14 @@ class PomodoroTimer extends StatelessWidget {
       create: (_) => PomodoroCubit(work: work, rest: rest),
       child: BlocBuilder<PomodoroCubit, PomodoroState>(
         builder: (ctx, state) {
-          final minutes = state.remaining.inMinutes.remainder(60).toString().padLeft(2, '0');
-          final seconds = state.remaining.inSeconds.remainder(60).toString().padLeft(2, '0');
+          final minutes = state.remaining.inMinutes
+              .remainder(60)
+              .toString()
+              .padLeft(2, '0');
+          final seconds = state.remaining.inSeconds
+              .remainder(60)
+              .toString()
+              .padLeft(2, '0');
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

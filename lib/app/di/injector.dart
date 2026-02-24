@@ -20,7 +20,8 @@ Future<void> setupDependencies() async {
   final tasksBox = await Hive.openBox<Map>('tasksBox');
   sl.registerLazySingleton(() => PreferencesLocalDataSource(prefsBox));
   sl.registerLazySingleton<PreferencesRepository>(
-      () => PreferencesRepositoryImpl(sl()));
+    () => PreferencesRepositoryImpl(sl()),
+  );
   sl.registerLazySingleton(() => TasksLocalDataSource(tasksBox));
   sl.registerLazySingleton<TaskRepository>(() => TaskRepositoryImpl(sl()));
 
@@ -28,10 +29,12 @@ Future<void> setupDependencies() async {
   sl.registerFactory(() => SavePreferences(sl()));
   sl.registerFactory(() => UpdateContrast(sl()));
 
-  sl.registerFactory(() => AccessibilityCubit(
-        updateContrast: sl(),
-        savePreferences: sl(),
-        loadPreferences: sl(),
-      ));
+  sl.registerFactory(
+    () => AccessibilityCubit(
+      updateContrast: sl(),
+      savePreferences: sl(),
+      loadPreferences: sl(),
+    ),
+  );
   sl.registerFactory(() => TasksBloc(sl()));
 }

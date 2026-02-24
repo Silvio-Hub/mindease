@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mindease/presentation/controllers/accessibility_cubit.dart';
 
 enum EnergyLevel { baixa, media, alta }
+
 enum InfoDensity { simples, equilibrada, detalhada }
 
 class FocusSettingsPage extends StatefulWidget {
@@ -25,7 +26,10 @@ class _FocusSettingsPageState extends State<FocusSettingsPage> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Text('Ajuste o ambiente de acordo com o seu estado mental atual.', style: theme.textTheme.bodyMedium),
+            Text(
+              'Ajuste o ambiente de acordo com o seu estado mental atual.',
+              style: theme.textTheme.bodyMedium,
+            ),
             const SizedBox(height: 16),
             Text('Nível de Energia Mental', style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
@@ -43,16 +47,27 @@ class _FocusSettingsPageState extends State<FocusSettingsPage> {
             SwitchListTile(
               value: focusMode,
               onChanged: (v) => setState(() => focusMode = v),
-              title: const Text('Bloqueia distrações e silencia notificações não urgentes.'),
+              title: const Text(
+                'Bloqueia distrações e silencia notificações não urgentes.',
+              ),
             ),
             const SizedBox(height: 16),
             Text('Densidade de Informação', style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
             SegmentedButton<InfoDensity>(
               segments: const [
-                ButtonSegment(value: InfoDensity.simples, label: Text('Simples')),
-                ButtonSegment(value: InfoDensity.equilibrada, label: Text('Equilibrada')),
-                ButtonSegment(value: InfoDensity.detalhada, label: Text('Detalhada')),
+                ButtonSegment(
+                  value: InfoDensity.simples,
+                  label: Text('Simples'),
+                ),
+                ButtonSegment(
+                  value: InfoDensity.equilibrada,
+                  label: Text('Equilibrada'),
+                ),
+                ButtonSegment(
+                  value: InfoDensity.detalhada,
+                  label: Text('Detalhada'),
+                ),
               ],
               selected: {density},
               onSelectionChanged: (s) => setState(() => density = s.first),

@@ -10,13 +10,15 @@ class TaskRepositoryImpl implements TaskRepository {
   Future<List<Task>> list() async {
     final list = await local.list();
     return list
-        .map((m) => Task(
-              id: (m['id'] as String?) ?? '',
-              title: (m['title'] as String?) ?? '',
-              inProgress: (m['inProgress'] as bool?) ?? false,
-              done: (m['done'] as bool?) ?? false,
-              checklist: (m['checklist'] as List?)?.cast<String>() ?? const [],
-            ))
+        .map(
+          (m) => Task(
+            id: (m['id'] as String?) ?? '',
+            title: (m['title'] as String?) ?? '',
+            inProgress: (m['inProgress'] as bool?) ?? false,
+            done: (m['done'] as bool?) ?? false,
+            checklist: (m['checklist'] as List?)?.cast<String>() ?? const [],
+          ),
+        )
         .toList();
   }
 
@@ -35,7 +37,11 @@ class TaskRepositoryImpl implements TaskRepository {
   Future<void> delete(String id) => local.delete(id);
 
   @override
-  Future<void> move(String id, {required bool inProgress, required bool done}) async {
+  Future<void> move(
+    String id, {
+    required bool inProgress,
+    required bool done,
+  }) async {
     final list = await local.list();
     final idx = list.indexWhere((m) => m['id'] == id);
     if (idx == -1) return;

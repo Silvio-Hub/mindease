@@ -7,8 +7,9 @@ ThemeData lightTheme({
   required bool animationsEnabled,
 }) {
   final base = ThemeData.light();
-  final colorScheme =
-      highContrast ? const ColorScheme.highContrastLight() : base.colorScheme;
+  final colorScheme = highContrast
+      ? const ColorScheme.highContrastLight()
+      : base.colorScheme;
 
   return base.copyWith(
     colorScheme: colorScheme,

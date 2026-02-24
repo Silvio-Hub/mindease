@@ -19,12 +19,16 @@ class TasksPage extends StatelessWidget {
             final isMobile = constraints.maxWidth < 600;
             return SafeArea(
               child: BlocBuilder<TasksBloc, TasksState>(
-              builder: (ctx, state) {
-                final todo = state.tasks.where((t) => !t.inProgress && !t.done).toList();
-                final doing = state.tasks.where((t) => t.inProgress && !t.done).toList();
-                final done = state.tasks.where((t) => t.done).toList();
+                builder: (ctx, state) {
+                  final todo = state.tasks
+                      .where((t) => !t.inProgress && !t.done)
+                      .toList();
+                  final doing = state.tasks
+                      .where((t) => t.inProgress && !t.done)
+                      .toList();
+                  final done = state.tasks.where((t) => t.done).toList();
 
-                if (isMobile) {
+                  if (isMobile) {
                     // Lista vertical por seção, cartões padronizados ocupando largura total
                     return ListView(
                       padding: const EdgeInsets.fromLTRB(12, 12, 12, 80),
@@ -34,9 +38,9 @@ class TasksPage extends StatelessWidget {
                           items: todo,
                           buildCard: (t) => TaskCard(
                             title: t.title,
-                            onPrimaryAction: () => ctx
-                                .read<TasksBloc>()
-                                .add(MoveTask(t.id, inProgress: true, done: false)),
+                            onPrimaryAction: () => ctx.read<TasksBloc>().add(
+                              MoveTask(t.id, inProgress: true, done: false),
+                            ),
                           ),
                         ),
                         TaskSection(
@@ -45,20 +49,21 @@ class TasksPage extends StatelessWidget {
                           buildCard: (t) => TaskCard(
                             title: t.title,
                             primaryIcon: Icons.check,
-                            onPrimaryAction: () => ctx
-                                .read<TasksBloc>()
-                                .add(MoveTask(t.id, inProgress: false, done: true)),
+                            onPrimaryAction: () => ctx.read<TasksBloc>().add(
+                              MoveTask(t.id, inProgress: false, done: true),
+                            ),
                           ),
                         ),
                         TaskSection(
                           header: 'Feito',
                           items: done,
-                          buildCard: (t) => const TaskCard(title: 'Concluída', enabled: false),
+                          buildCard: (t) =>
+                              TaskCard(title: t.title, enabled: false),
                         ),
                       ],
                     );
-                } else {
-                  // Layout de colunas para telas largas, cada coluna rolável
+                  } else {
+                    // Layout de colunas para telas largas, cada coluna rolável
                     return Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -70,9 +75,14 @@ class TasksPage extends StatelessWidget {
                               items: todo,
                               buildCard: (t) => TaskCard(
                                 title: t.title,
-                                onPrimaryAction: () => ctx
-                                    .read<TasksBloc>()
-                                    .add(MoveTask(t.id, inProgress: true, done: false)),
+                                onPrimaryAction: () =>
+                                    ctx.read<TasksBloc>().add(
+                                      MoveTask(
+                                        t.id,
+                                        inProgress: true,
+                                        done: false,
+                                      ),
+                                    ),
                               ),
                             ),
                           ),
@@ -86,9 +96,14 @@ class TasksPage extends StatelessWidget {
                               buildCard: (t) => TaskCard(
                                 title: t.title,
                                 primaryIcon: Icons.check,
-                                onPrimaryAction: () => ctx
-                                    .read<TasksBloc>()
-                                    .add(MoveTask(t.id, inProgress: false, done: true)),
+                                onPrimaryAction: () =>
+                                    ctx.read<TasksBloc>().add(
+                                      MoveTask(
+                                        t.id,
+                                        inProgress: false,
+                                        done: true,
+                                      ),
+                                    ),
                               ),
                             ),
                           ),
@@ -99,14 +114,15 @@ class TasksPage extends StatelessWidget {
                             child: TaskSection(
                               header: 'Feito',
                               items: done,
-                              buildCard: (t) => const TaskCard(title: 'Concluída', enabled: false),
+                              buildCard: (t) =>
+                                  TaskCard(title: t.title, enabled: false),
                             ),
                           ),
                         ),
                       ],
                     );
-                }
-              },
+                  }
+                },
               ),
             );
           },
@@ -114,16 +130,19 @@ class TasksPage extends StatelessWidget {
         floatingActionButton: Builder(
           builder: (ctx) => FloatingActionButton(
             onPressed: () async {
-              final result = await Navigator.of(ctx).push(
-                MaterialPageRoute(builder: (_) => const AddTaskPage()),
-              );
+              final result = await Navigator.of(
+                ctx,
+              ).push(MaterialPageRoute(builder: (_) => const AddTaskPage()));
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 final bloc = ctx.read<TasksBloc>();
                 if (result is Map) {
                   final id = DateTime.now().millisecondsSinceEpoch.toString();
                   final title = (result['title'] as String?) ?? 'Nova tarefa';
-                  final steps = (result['steps'] as List?)?.cast<String>() ?? const [];
-                  bloc.add(AddTask(Task(id: id, title: title, checklist: steps)));
+                  final steps =
+                      (result['steps'] as List?)?.cast<String>() ?? const [];
+                  bloc.add(
+                    AddTask(Task(id: id, title: title, checklist: steps)),
+                  );
                 }
               });
             },
@@ -151,7 +170,12 @@ class TaskSection extends StatelessWidget {
   final String header;
   final List<Task> items;
   final Widget Function(Task t) buildCard;
-  const TaskSection({super.key, required this.header, required this.items, required this.buildCard});
+  const TaskSection({
+    super.key,
+    required this.header,
+    required this.items,
+    required this.buildCard,
+  });
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -162,7 +186,10 @@ class TaskSection extends StatelessWidget {
         if (items.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Text('Sem itens', style: Theme.of(context).textTheme.bodySmall),
+            child: Text(
+              'Sem itens',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
           )
         else
           ...items.map(buildCard),
@@ -192,7 +219,10 @@ class TaskCard extends StatelessWidget {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ListTile(
-        leading: Icon(enabled ? Icons.check_box_outline_blank : Icons.check_box, color: theme.colorScheme.primary),
+        leading: Icon(
+          enabled ? Icons.check_box_outline_blank : Icons.check_box,
+          color: theme.colorScheme.primary,
+        ),
         title: Text(title, style: theme.textTheme.bodyLarge),
         trailing: IconButton(
           icon: Icon(primaryIcon),
