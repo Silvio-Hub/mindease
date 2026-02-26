@@ -50,6 +50,16 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.arrow_back,
+                            color: Brand.primary,
+                          ),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         child: Column(

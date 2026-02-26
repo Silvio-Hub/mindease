@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mindease/core/constants/brand.dart';
+import 'package:mindease/domain/entities/task.dart';
 
 class AddTaskPage extends StatefulWidget {
   const AddTaskPage({super.key});
@@ -11,6 +12,7 @@ class _AddTaskPageState extends State<AddTaskPage> {
   final titleCtrl = TextEditingController();
   final stepCtrls = List.generate(3, (_) => TextEditingController());
   int estimateMinutes = 15;
+  TaskEnergy _energy = TaskEnergy.medium;
 
   @override
   Widget build(BuildContext context) {
@@ -109,6 +111,37 @@ class _AddTaskPageState extends State<AddTaskPage> {
                   ),
                 ],
               ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  const Icon(Icons.bolt, size: 18),
+                  const SizedBox(width: 8),
+                  Text('Nível de Energia', style: theme.textTheme.titleMedium),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _EstimateChip(
+                    label: 'BAIXA',
+                    selected: _energy == TaskEnergy.low,
+                    onSelected: () => setState(() => _energy = TaskEnergy.low),
+                  ),
+                  _EstimateChip(
+                    label: 'MÉDIA',
+                    selected: _energy == TaskEnergy.medium,
+                    onSelected: () =>
+                        setState(() => _energy = TaskEnergy.medium),
+                  ),
+                  _EstimateChip(
+                    label: 'ALTA',
+                    selected: _energy == TaskEnergy.high,
+                    onSelected: () => setState(() => _energy = TaskEnergy.high),
+                  ),
+                ],
+              ),
               const SizedBox(height: 24),
               SizedBox(
                 height: 52,
@@ -126,6 +159,7 @@ class _AddTaskPageState extends State<AddTaskPage> {
                           .where((s) => s.isNotEmpty)
                           .toList(),
                       'estimate': estimateMinutes,
+                      'energy': _energy,
                     });
                   },
                   icon: const Icon(Icons.check_circle),

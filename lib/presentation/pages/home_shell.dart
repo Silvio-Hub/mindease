@@ -20,11 +20,11 @@ class _HomeShellState extends State<HomeShell> {
     _index = widget.initialIndex;
   }
 
-  final _pages = const [
-    FocusDashboardPage(),
-    TasksPage(),
-    ProgressPage(),
-    FocusSettingsPage(),
+  List<Widget> get _pages => [
+    FocusDashboardPage(onSeeAllTasks: () => setState(() => _index = 1)),
+    const TasksPage(),
+    const ProgressPage(),
+    const FocusSettingsPage(),
   ];
 
   @override

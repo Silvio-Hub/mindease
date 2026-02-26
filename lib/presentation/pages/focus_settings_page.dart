@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mindease/app/di/injector.dart';
+import 'package:mindease/domain/repositories/auth_repository.dart';
 import 'package:mindease/presentation/controllers/accessibility_cubit.dart';
+import 'package:mindease/presentation/pages/login_page.dart';
 
 enum EnergyLevel { baixa, media, alta }
 
@@ -81,6 +84,26 @@ class _FocusSettingsPageState extends State<FocusSettingsPage> {
                 );
               },
               child: const Text('Salvar e Aplicar Mudanças'),
+            ),
+            const SizedBox(height: 32),
+            OutlinedButton.icon(
+              onPressed: () async {
+                await sl<AuthRepository>().logout();
+                if (context.mounted) {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const LoginPage()),
+                    (route) => false,
+                  );
+                }
+              },
+              icon: const Icon(Icons.logout, color: Colors.red),
+              label: const Text(
+                'Sair da Conta',
+                style: TextStyle(color: Colors.red),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.red),
+              ),
             ),
           ],
         ),

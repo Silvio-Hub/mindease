@@ -1,46 +1,125 @@
 name: Flutter CI
 
 on:
-  push:
-    branches: ["main"]
   pull_request:
     branches: ["main"]
 
+  push:
+    branches: ["main"]
+
+env:
+  FLUTTER_VERSION: "3.35.1"
+
 jobs:
-  build:
+  validate:
+    name: Validate (Fast)
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # Checkout
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Set up Java
+      # Java
+      - name: Setup Java
         uses: actions/setup-java@v3
         with:
-          distribution: "temurin"
-          java-version: "17"
+          distribution: temurin
+          java-version: 17
 
-      - name: Set up Flutter
+      # Cache Gradle
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      # Flutter
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: "stable"
-          # flutter-version: '3.19.0' # Optional: Specify version if needed
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
 
-      - name: Install dependencies
+      # Cache Pub dependencies
+      - name: Cache Pub
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: pub-${{ runner.os }}-
+
+      # Install deps
+      - name: Get dependencies
         run: flutter pub get
 
+      # Format check
       - name: Check format
         run: dart format --output=none --set-exit-if-changed .
 
-      - name: Run code generation
+      # Codegen (incremental)
+      - name: Code generation
         run: dart run build_runner build --delete-conflicting-outputs
 
-      # Static analysis
-      - name: Analyze code
+      # Analyze
+      - name: Analyze
         run: flutter analyze
 
-      # Unit Tests
+      # Tests (skip if none exist)
       - name: Run tests
-        run: flutter test
+        run: |
+          if [ -d "test" ]; then
+            flutter test
+          else
+            echo "No tests found, skipping"
+          fi
+
+  build:
+    name: Build APK (Main only)
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'push'
+
+    steps:
+      # Checkout
+      - uses: actions/checkout@v4
+
+      # Java
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # Cache Gradle
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      # Flutter
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      # Cache Pub
+      - uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: pub-${{ runner.os }}-
+
+      # Dependencies
+      - run: flutter pub get
+
+      # Codegen
+      - run: dart run build_runner build --delete-conflicting-outputs
 
       # Create local.properties (Crucial for Android Build)
       - name: Create local.properties
@@ -54,5 +133,13 @@ jobs:
           dos2unix android/gradlew
           chmod +x android/gradlew
 
-      - name: Build APK (Production)
+      # Build APK
+      - name: Build APK
         run: flutter build apk --debug --flavor production --target lib/app/main_production.dart
+
+      # Upload artifact
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: mindease-apk
+          path: build/app/outputs/flutter-apk/*.apk

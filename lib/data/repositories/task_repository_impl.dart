@@ -17,6 +17,16 @@ class TaskRepositoryImpl implements TaskRepository {
             inProgress: (m['inProgress'] as bool?) ?? false,
             done: (m['done'] as bool?) ?? false,
             checklist: (m['checklist'] as List?)?.cast<String>() ?? const [],
+            dueDate: m['dueDate'] != null
+                ? DateTime.fromMillisecondsSinceEpoch(m['dueDate'] as int)
+                : null,
+            durationMinutes: m['durationMinutes'] as int?,
+            energy: m['energy'] != null
+                ? TaskEnergy.values.firstWhere(
+                    (e) => e.toString() == (m['energy'] as String),
+                    orElse: () => TaskEnergy.medium,
+                  )
+                : null,
           ),
         )
         .toList();
@@ -30,6 +40,9 @@ class TaskRepositoryImpl implements TaskRepository {
       'inProgress': task.inProgress,
       'done': task.done,
       'checklist': task.checklist,
+      'dueDate': task.dueDate?.millisecondsSinceEpoch,
+      'durationMinutes': task.durationMinutes,
+      'energy': task.energy?.toString(),
     });
   }
 
