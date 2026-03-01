@@ -31,9 +31,53 @@ class _RegisterViewState extends State<_RegisterView> {
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isPasswordVisible = false;
+  bool _isFormValid = false;
+
+  bool _isNameValid = true;
+  bool _isEmailValid = true;
+  bool _isPasswordValid = true;
+
+  bool _nameTouched = false;
+  bool _emailTouched = false;
+  bool _passwordTouched = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController.addListener(_validateForm);
+    _emailController.addListener(_validateForm);
+    _passwordController.addListener(_validateForm);
+  }
+
+  void _validateForm() {
+    final name = _nameController.text;
+    final email = _emailController.text;
+    final password = _passwordController.text;
+
+    // Check individual field validity
+    final isNameValid = name.isNotEmpty;
+    final isEmailValid = email.isNotEmpty && email.contains('@');
+    final isPasswordValid = password.isNotEmpty && password.length >= 8;
+
+    // Only update state if something changed
+    if (isNameValid != _isNameValid ||
+        isEmailValid != _isEmailValid ||
+        isPasswordValid != _isPasswordValid ||
+        (isNameValid && isEmailValid && isPasswordValid) != _isFormValid) {
+      setState(() {
+        _isNameValid = isNameValid;
+        _isEmailValid = isEmailValid;
+        _isPasswordValid = isPasswordValid;
+        _isFormValid = isNameValid && isEmailValid && isPasswordValid;
+      });
+    }
+  }
 
   @override
   void dispose() {
+    _nameController.removeListener(_validateForm);
+    _emailController.removeListener(_validateForm);
+    _passwordController.removeListener(_validateForm);
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -41,7 +85,7 @@ class _RegisterViewState extends State<_RegisterView> {
   }
 
   void _onRegisterPressed() {
-    if (_formKey.currentState?.validate() ?? false) {
+    if (_isFormValid) {
       context.read<RegisterCubit>().register(
         _nameController.text.trim(),
         _emailController.text.trim(),
@@ -109,13 +153,13 @@ class _RegisterViewState extends State<_RegisterView> {
                     constraints: const BoxConstraints(maxWidth: 400),
                     padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(
-                        0.9,
+                      color: Colors.white.withValues(
+                        alpha: 0.9,
                       ), // Slightly transparent or solid white
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black.withValues(alpha: 0.05),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
@@ -158,27 +202,62 @@ class _RegisterViewState extends State<_RegisterView> {
                                     ),
                               ),
                               const SizedBox(height: 8),
-                              TextFormField(
-                                controller: _nameController,
-                                decoration: InputDecoration(
-                                  hintText: 'Digite seu nome completo',
-                                  filled: true,
-                                  fillColor: Colors.grey[100],
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 16,
-                                  ),
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Por favor, insira seu nome';
+                              Focus(
+                                onFocusChange: (hasFocus) {
+                                  if (!hasFocus) {
+                                    setState(() {
+                                      _nameTouched = true;
+                                    });
+                                    _validateForm();
+                                    _formKey.currentState?.validate();
                                   }
-                                  return null;
                                 },
+                                child: TextFormField(
+                                  controller: _nameController,
+                                  autovalidateMode:
+                                      AutovalidateMode.onUserInteraction,
+                                  decoration: InputDecoration(
+                                    hintText: 'Digite seu nome completo',
+                                    filled: true,
+                                    fillColor: Colors.grey[100],
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    errorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: const BorderSide(
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                    focusedErrorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: const BorderSide(
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                    errorStyle: const TextStyle(
+                                      color: Colors.red,
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 16,
+                                    ),
+                                    suffixIcon: _nameTouched && !_isNameValid
+                                        ? const Icon(
+                                            Icons.error_outline,
+                                            color: Colors.red,
+                                          )
+                                        : null,
+                                  ),
+                                  validator: (value) {
+                                    if (_nameTouched &&
+                                        (value == null || value.isEmpty)) {
+                                      return 'Por favor, insira seu nome';
+                                    }
+                                    return null;
+                                  },
+                                ),
                               ),
                             ],
                           ),
@@ -197,31 +276,66 @@ class _RegisterViewState extends State<_RegisterView> {
                                     ),
                               ),
                               const SizedBox(height: 8),
-                              TextFormField(
-                                controller: _emailController,
-                                decoration: InputDecoration(
-                                  hintText: 'Digite seu e-mail',
-                                  filled: true,
-                                  fillColor: Colors.grey[100],
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 16,
-                                  ),
-                                ),
-                                keyboardType: TextInputType.emailAddress,
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Por favor, insira seu e-mail';
+                              Focus(
+                                onFocusChange: (hasFocus) {
+                                  if (!hasFocus) {
+                                    setState(() {
+                                      _emailTouched = true;
+                                    });
+                                    _validateForm();
+                                    _formKey.currentState?.validate();
                                   }
-                                  if (!value.contains('@')) {
-                                    return 'E-mail inválido';
-                                  }
-                                  return null;
                                 },
+                                child: TextFormField(
+                                  controller: _emailController,
+                                  autovalidateMode:
+                                      AutovalidateMode.onUserInteraction,
+                                  decoration: InputDecoration(
+                                    hintText: 'Digite seu e-mail',
+                                    filled: true,
+                                    fillColor: Colors.grey[100],
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    errorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: const BorderSide(
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                    focusedErrorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: const BorderSide(
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                    errorStyle: const TextStyle(
+                                      color: Colors.red,
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 16,
+                                    ),
+                                    suffixIcon: _emailTouched && !_isEmailValid
+                                        ? const Icon(
+                                            Icons.error_outline,
+                                            color: Colors.red,
+                                          )
+                                        : null,
+                                  ),
+                                  keyboardType: TextInputType.emailAddress,
+                                  validator: (value) {
+                                    if (!_emailTouched) return null;
+                                    if (value == null || value.isEmpty) {
+                                      return 'Por favor, insira seu e-mail';
+                                    }
+                                    if (!value.contains('@')) {
+                                      return 'Por favor, insira um e-mail válido';
+                                    }
+                                    return null;
+                                  },
+                                ),
                               ),
                             ],
                           ),
@@ -240,45 +354,81 @@ class _RegisterViewState extends State<_RegisterView> {
                                     ),
                               ),
                               const SizedBox(height: 8),
-                              TextFormField(
-                                controller: _passwordController,
-                                decoration: InputDecoration(
-                                  hintText: 'No mínimo 8 caracteres',
-                                  filled: true,
-                                  fillColor: Colors.grey[100],
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 16,
-                                  ),
-                                  suffixIcon: IconButton(
-                                    icon: Icon(
-                                      _isPasswordVisible
-                                          ? Icons.visibility_outlined
-                                          : Icons.visibility_off_outlined,
-                                      color: Colors.grey,
-                                    ),
-                                    onPressed: () {
-                                      setState(() {
-                                        _isPasswordVisible =
-                                            !_isPasswordVisible;
-                                      });
-                                    },
-                                  ),
-                                ),
-                                obscureText: !_isPasswordVisible,
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Por favor, crie uma senha';
+                              Focus(
+                                onFocusChange: (hasFocus) {
+                                  if (!hasFocus) {
+                                    setState(() {
+                                      _passwordTouched = true;
+                                    });
+                                    _validateForm();
+                                    _formKey.currentState?.validate();
                                   }
-                                  if (value.length < 8) {
-                                    return 'A senha deve ter pelo menos 8 caracteres';
-                                  }
-                                  return null;
                                 },
+                                child: TextFormField(
+                                  controller: _passwordController,
+                                  autovalidateMode:
+                                      AutovalidateMode.onUserInteraction,
+                                  decoration: InputDecoration(
+                                    hintText: 'No mínimo 8 caracteres',
+                                    filled: true,
+                                    fillColor: Colors.grey[100],
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    errorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: const BorderSide(
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                    focusedErrorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: const BorderSide(
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                    errorStyle: const TextStyle(
+                                      color: Colors.red,
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 16,
+                                    ),
+                                    suffixIcon:
+                                        _passwordTouched && !_isPasswordValid
+                                        ? const Icon(
+                                            Icons.error_outline,
+                                            color: Colors.red,
+                                          )
+                                        : IconButton(
+                                            icon: Icon(
+                                              _isPasswordVisible
+                                                  ? Icons.visibility_outlined
+                                                  : Icons
+                                                        .visibility_off_outlined,
+                                              color: Colors.grey,
+                                            ),
+                                            onPressed: () {
+                                              setState(() {
+                                                _isPasswordVisible =
+                                                    !_isPasswordVisible;
+                                              });
+                                            },
+                                          ),
+                                  ),
+                                  obscureText: !_isPasswordVisible,
+                                  validator: (value) {
+                                    if (!_passwordTouched) return null;
+                                    if (value == null || value.isEmpty) {
+                                      return 'Por favor, crie uma senha';
+                                    }
+                                    if (value.length < 8) {
+                                      return 'A senha deve ter no mínimo 8 caracteres';
+                                    }
+                                    return null;
+                                  },
+                                ),
                               ),
                             ],
                           ),
@@ -295,22 +445,27 @@ class _RegisterViewState extends State<_RegisterView> {
                               return SizedBox(
                                 height: 50,
                                 child: ElevatedButton(
-                                  onPressed: _onRegisterPressed,
+                                  onPressed: _isFormValid
+                                      ? _onRegisterPressed
+                                      : null,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(
-                                      0xFF8B80C8,
-                                    ), // Purple/Lavender color
+                                    backgroundColor: const Color(0xFF4F46E5),
+                                    disabledBackgroundColor: const Color(
+                                      0xFF4F46E5,
+                                    ).withValues(alpha: 0.5),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     elevation: 0,
                                   ),
-                                  child: const Text(
+                                  child: Text(
                                     'Criar conta',
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                                      color: Colors.white.withValues(
+                                        alpha: _isFormValid ? 1.0 : 0.7,
+                                      ),
                                     ),
                                   ),
                                 ),
