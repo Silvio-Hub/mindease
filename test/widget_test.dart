@@ -40,14 +40,14 @@ void main() {
     );
     when(() => mockAccessibilityCubit.init()).thenAnswer((_) async {});
 
-    when(() => mockAuthRepository.getCurrentUser()).thenAnswer((_) async => null);
+    when(
+      () => mockAuthRepository.getCurrentUser(),
+    ).thenAnswer((_) async => null);
 
     GetIt.instance.registerSingleton<AccessibilityCubit>(
       mockAccessibilityCubit,
     );
-    GetIt.instance.registerSingleton<AuthRepository>(
-      mockAuthRepository,
-    );
+    GetIt.instance.registerSingleton<AuthRepository>(mockAuthRepository);
   });
 
   tearDown(() {

@@ -25,7 +25,11 @@ class AuthRepositoryImpl implements AuthRepository {
     await Future.delayed(const Duration(seconds: 2));
 
     if (name.isNotEmpty && email.isNotEmpty && password.length >= 6) {
-      final user = User(id: DateTime.now().toString(), email: email, name: name);
+      final user = User(
+        id: DateTime.now().toString(),
+        email: email,
+        name: name,
+      );
       await _dataSource.saveUser(user);
       return user;
     } else {
