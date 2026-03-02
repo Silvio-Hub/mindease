@@ -73,7 +73,7 @@ class FocusPage extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         backgroundColor: Brand.primary,
         onPressed: () {},
-        child: const Icon(Icons.add, color: Colors.white),
+        child: const Icon(Icons.add, color: Brand.textWhite),
       ),
     );
   }

@@ -16,19 +16,16 @@ class _EditTaskPageState extends State<EditTaskPage> {
   late final TextEditingController _titleCtrl;
   final _stepCtrls = List.generate(3, (_) => TextEditingController());
 
-  int _estimateMinutes = 45; // Default for edit mockup: 45m
-  TaskEnergy _energy = TaskEnergy.high; // Default for edit mockup: Alta
+  int _estimateMinutes = 45;
+  TaskEnergy _energy = TaskEnergy.high;
 
-  // 0: Hoje, 1: Amanhã, 2: Outra data
-  int _dateOption = 2; // Default for edit mockup: Outra data
-  DateTime? _selectedCustomDate = DateTime(2024, 10, 27); // Default: 27/10/2024
+  int _dateOption = 2;
+  DateTime? _selectedCustomDate = DateTime(2024, 10, 27);
 
   @override
   void initState() {
     super.initState();
     _titleCtrl = TextEditingController(text: widget.initialTitle);
-
-    // Pre-fill mock data for steps
     _stepCtrls[0].text = "Revisar anotações da aula";
     _stepCtrls[1].text = "Criar slides";
   }
@@ -50,7 +47,6 @@ class _EditTaskPageState extends State<EditTaskPage> {
       return;
     }
 
-    // Calcular data final baseada na opção
     final now = DateTime.now();
     DateTime? dueDate;
 
@@ -86,7 +82,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
               primary: Brand.primary,
-              onPrimary: Colors.white,
+              onPrimary: Brand.textWhite,
               onSurface: Brand.textMain,
             ),
           ),
@@ -98,7 +94,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
     if (picked != null) {
       setState(() {
         _selectedCustomDate = picked;
-        _dateOption = 2; // Forçar seleção de "Outra data"
+        _dateOption = 2;
       });
     }
   }
@@ -106,34 +102,21 @@ class _EditTaskPageState extends State<EditTaskPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Brand.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Brand.surface,
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back_rounded, color: Colors.grey),
+          icon: const Icon(Icons.arrow_back, color: Brand.textMain),
         ),
-        title: Column(
-          children: [
-            const Text(
-              'Editar tarefa',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Brand.textMain,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Ajuste o que for necessário.',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.normal,
-              ),
-            ),
-          ],
+        title: const Text(
+          'Editar Tarefa',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Brand.textMain,
+          ),
         ),
         centerTitle: true,
       ),
@@ -145,22 +128,26 @@ class _EditTaskPageState extends State<EditTaskPage> {
             children: [
               const SizedBox(height: 16),
 
-              // Title Input
               _buildSectionLabel('O que você quer realizar?'),
               const SizedBox(height: 8),
               TextField(
                 controller: _titleCtrl,
                 decoration: InputDecoration(
                   hintText: 'Ex: Estudar matemática',
-                  hintStyle: TextStyle(color: Colors.grey[400]),
+                  hintStyle: const TextStyle(color: Brand.textLight),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(12),
                     borderSide: const BorderSide(color: Brand.primary),
                   ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(
+                      color: Brand.primary,
+                      width: 2,
+                    ),
+                  ),
+                  filled: true,
+                  fillColor: Brand.surface,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 14,
@@ -170,7 +157,6 @@ class _EditTaskPageState extends State<EditTaskPage> {
 
               const SizedBox(height: 24),
 
-              // Subtasks
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -198,20 +184,20 @@ class _EditTaskPageState extends State<EditTaskPage> {
                           : index == 1
                           ? 'Segundo passo...'
                           : 'Terceiro passo...',
-                      hintStyle: TextStyle(color: Colors.grey[400]),
+                      hintStyle: TextStyle(color: Brand.textLight),
                       prefixIcon: Padding(
                         padding: const EdgeInsets.all(12),
                         child: Container(
                           width: 20,
                           height: 20,
                           decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey[300]!),
+                            border: Border.all(color: Brand.border),
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
                       ),
                       filled: true,
-                      fillColor: Colors.grey[50],
+                      fillColor: Brand.backgroundAlt,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
@@ -235,12 +221,11 @@ class _EditTaskPageState extends State<EditTaskPage> {
 
               const SizedBox(height: 24),
 
-              // Energy Level
               _buildSectionLabel('Nível de energia necessário'),
               const SizedBox(height: 4),
               Text(
                 'Quanto de esforço essa tarefa pede de você agora?',
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                style: TextStyle(fontSize: 12, color: Brand.textSecondary),
               ),
               const SizedBox(height: 12),
               Row(
@@ -273,12 +258,11 @@ class _EditTaskPageState extends State<EditTaskPage> {
 
               const SizedBox(height: 24),
 
-              // When to realize
               _buildSectionLabel('Quando realizar?'),
               const SizedBox(height: 4),
               Text(
                 'Defina uma data para manter o foco.',
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                style: TextStyle(fontSize: 12, color: Brand.textSecondary),
               ),
               const SizedBox(height: 12),
               Row(
@@ -310,7 +294,6 @@ class _EditTaskPageState extends State<EditTaskPage> {
                 ],
               ),
 
-              // Custom Date Picker Display
               if (_dateOption == 2) ...[
                 const SizedBox(height: 16),
                 _buildSectionLabel('Selecione o dia'),
@@ -324,7 +307,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
                       vertical: 14,
                     ),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey[300]!),
+                      border: Border.all(color: Brand.border),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
@@ -332,7 +315,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
                         Icon(
                           Icons.calendar_today_outlined,
                           size: 20,
-                          color: Colors.grey[600],
+                          color: Brand.textSecondary,
                         ),
                         const SizedBox(width: 12),
                         Text(
@@ -354,7 +337,6 @@ class _EditTaskPageState extends State<EditTaskPage> {
 
               const SizedBox(height: 24),
 
-              // Estimated Time
               _buildSectionLabel('Quanto tempo você estima?'),
               const SizedBox(height: 12),
               Row(
@@ -395,7 +377,6 @@ class _EditTaskPageState extends State<EditTaskPage> {
 
               const SizedBox(height: 40),
 
-              // Action Buttons
               SizedBox(
                 width: double.infinity,
                 height: 52,
@@ -403,7 +384,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
                   onPressed: _onSave,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Brand.primary,
-                    foregroundColor: Colors.white,
+                    foregroundColor: Brand.textWhite,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -421,7 +402,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
                 child: TextButton(
                   onPressed: () => Navigator.pop(context),
                   style: TextButton.styleFrom(
-                    foregroundColor: Colors.grey[600],
+                    foregroundColor: Brand.textSecondary,
                   ),
                   child: const Text('Cancelar', style: TextStyle(fontSize: 16)),
                 ),
@@ -467,11 +448,9 @@ class _SelectableButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? Brand.selectedBg : Colors.white,
+          color: isSelected ? Brand.selectedBg : Brand.surface,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected ? Brand.primary : Colors.grey[300]!,
-          ),
+          border: Border.all(color: isSelected ? Brand.primary : Brand.border),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -480,7 +459,7 @@ class _SelectableButton extends StatelessWidget {
               Icon(
                 icon,
                 size: 16,
-                color: isSelected ? Brand.primary : Colors.grey[600],
+                color: isSelected ? Brand.primary : Brand.textSecondary,
               ),
               const SizedBox(width: 8),
             ],
@@ -489,7 +468,7 @@ class _SelectableButton extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isSelected ? Brand.primary : Colors.grey[600],
+                color: isSelected ? Brand.primary : Brand.textSecondary,
               ),
             ),
           ],

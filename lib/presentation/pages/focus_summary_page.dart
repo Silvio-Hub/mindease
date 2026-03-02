@@ -19,15 +19,10 @@ class FocusSummaryPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 16),
-              // Header
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
-                    Icons.psychology,
-                    color: Brand.primary,
-                    size: 28,
-                  ),
+                  const Icon(Icons.psychology, color: Brand.primary, size: 28),
                   const SizedBox(width: 8),
                   const Text(
                     'MindEase Focus',
@@ -41,12 +36,7 @@ class FocusSummaryPage extends StatelessWidget {
               ),
               const SizedBox(height: 48),
 
-              // Plant Illustration (Using Icon as placeholder)
-              const Icon(
-                Icons.spa_rounded,
-                size: 120,
-                color: Brand.secondary,
-              ),
+              const Icon(Icons.spa_rounded, size: 120, color: Brand.secondary),
 
               const SizedBox(height: 40),
 
@@ -65,30 +55,29 @@ class FocusSummaryPage extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey,
+                  color: Brand.textSecondary,
                   height: 1.5,
                 ),
               ),
 
               const SizedBox(height: 48),
 
-              // Button: Fazer uma pausa
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    // Navigate to FocusSessionPage in Rest Mode
                     Navigator.of(context).pushReplacement(
                       MaterialPageRoute(
-                        builder: (_) => const FocusSessionPage(startInRestMode: true),
+                        builder: (_) =>
+                            const FocusSessionPage(startInRestMode: true),
                       ),
                     );
                   },
-                  icon: const Icon(Icons.timer_outlined, color: Colors.white),
+                  icon: const Icon(Icons.timer_outlined, color: Brand.surface),
                   label: const Text(
-                    'Fazer uma pausa de 3 min', // Assuming fixed duration for now
+                    'Fazer uma pausa de 3 min',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: Brand.surface,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -103,7 +92,6 @@ class FocusSummaryPage extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // Button: Voltar para o início
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -122,7 +110,7 @@ class FocusSummaryPage extends StatelessWidget {
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Brand.backgroundGrey, // Light grey bg
+                    backgroundColor: Brand.backgroundAlt,
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
@@ -134,16 +122,19 @@ class FocusSummaryPage extends StatelessWidget {
 
               const Spacer(),
 
-              // Footer
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.check_circle_outline, size: 20, color: Colors.grey),
+                  const Icon(
+                    Icons.check_circle_outline,
+                    size: 20,
+                    color: Brand.textSecondary,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     'Sessão de foco: $completedMinutes minutos concluídos',
                     style: const TextStyle(
-                      color: Colors.grey,
+                      color: Brand.textSecondary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),

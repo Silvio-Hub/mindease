@@ -41,25 +41,25 @@ class _HomeShellState extends State<HomeShell> {
                 color: Brand.primary,
               );
             }
-            return TextStyle(
+            return const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: Colors.grey[600],
+              color: Brand.textSecondary,
             );
           }),
           iconTheme: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
               return const IconThemeData(color: Brand.primary);
             }
-            return IconThemeData(color: Colors.grey[600]);
+            return const IconThemeData(color: Brand.textSecondary);
           }),
         ),
         child: NavigationBar(
           selectedIndex: _index,
           onDestinationSelected: (i) => setState(() => _index = i),
-          backgroundColor: Colors.white,
+          backgroundColor: Brand.surface,
           elevation: 2,
-          shadowColor: Colors.black.withValues(alpha: 0.1),
+          shadowColor: Brand.textMain.withValues(alpha: 0.1),
           destinations: const [
             NavigationDestination(
               icon: Icon(Icons.center_focus_strong_outlined),

@@ -14,7 +14,6 @@ class FocusSessionPage extends StatefulWidget {
 }
 
 class _FocusSessionPageState extends State<FocusSessionPage> {
-  // Using the tasks from the design
   final tasks = [
     {'title': 'Revisar anotações da aula', 'done': false},
     {'title': 'Criar slides', 'done': false},
@@ -24,14 +23,13 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => PomodoroCubit(
-        work: const Duration(minutes: 45), // Matching screenshot (45:00)
+        work: const Duration(minutes: 45),
         rest: const Duration(minutes: 5),
         startInRestMode: widget.startInRestMode,
       ),
       child: BlocListener<PomodoroCubit, PomodoroState>(
         listener: (context, state) {
           if (state.status == PomodoroStatus.finishedWork) {
-            // Navigate to Summary Page
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(
                 builder: (_) => const FocusSummaryPage(completedMinutes: 45),
@@ -56,7 +54,7 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
                 : Brand.restBackground;
 
             return Scaffold(
-              backgroundColor: backgroundColor, // Dynamic background
+              backgroundColor: backgroundColor,
               body: SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -64,7 +62,6 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const SizedBox(height: 16),
-                      // Header
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -86,14 +83,13 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Progress Bar
                       Stack(
                         children: [
                           Container(
                             height: 4,
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: Colors.grey[300],
+                              color: Brand.border,
                               borderRadius: BorderRadius.circular(2),
                             ),
                           ),
@@ -113,14 +109,13 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: Colors.grey[500],
+                          color: Brand.textSecondary,
                           letterSpacing: 1.0,
                         ),
                       ),
 
                       const SizedBox(height: 40),
 
-                      // Timer Display
                       BlocBuilder<PomodoroCubit, PomodoroState>(
                         builder: (context, state) {
                           final minutes = state.remaining.inMinutes
@@ -153,7 +148,6 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
 
                       const SizedBox(height: 32),
 
-                      // Task Title
                       const Text(
                         'Preparar apresentação',
                         textAlign: TextAlign.center,
@@ -167,15 +161,17 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
                       Text(
                         'Mantenha o foco. Você está indo bem.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Brand.textSecondary,
+                        ),
                       ),
 
                       const SizedBox(height: 32),
 
-                      // Checklist
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Brand.surface,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         padding: const EdgeInsets.all(8),
@@ -200,7 +196,7 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
                                   task['title'] as String,
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: Colors.grey[800],
+                                    color: Brand.textMain,
                                     decoration: (task['done'] as bool)
                                         ? TextDecoration.lineThrough
                                         : null,
@@ -223,7 +219,6 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
 
                       const Spacer(),
 
-                      // Controls
                       BlocBuilder<PomodoroCubit, PomodoroState>(
                         builder: (context, state) {
                           final isRunning = state.running;
@@ -242,17 +237,17 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
                                     isRunning
                                         ? Icons.pause_rounded
                                         : Icons.play_arrow_rounded,
-                                    color: Colors.grey[700],
+                                    color: Brand.textSecondary,
                                   ),
                                   label: Text(
                                     isRunning ? 'Pausar' : 'Retomar',
                                     style: TextStyle(
-                                      color: Colors.grey[700],
+                                      color: Brand.textSecondary,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Brand.backgroundGrey,
+                                    backgroundColor: Brand.backgroundAlt,
                                     elevation: 0,
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 16,
@@ -267,24 +262,22 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
                               Expanded(
                                 child: ElevatedButton.icon(
                                   onPressed: () {
-                                    // Just finish for now, maybe show summary later
                                     Navigator.of(context).pushReplacement(
                                       MaterialPageRoute(
                                         builder: (_) => const FocusSummaryPage(
-                                          completedMinutes:
-                                              15, // TODO: calculate actual
+                                          completedMinutes: 15,
                                         ),
                                       ),
                                     );
                                   },
                                   icon: const Icon(
                                     Icons.check_circle_outline_rounded,
-                                    color: Colors.white,
+                                    color: Brand.surface,
                                   ),
                                   label: const Text(
                                     'Finalizar',
                                     style: TextStyle(
-                                      color: Colors.white,
+                                      color: Brand.surface,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -307,19 +300,18 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
 
                       const SizedBox(height: 24),
 
-                      // Exit Button
                       TextButton.icon(
                         onPressed: () =>
                             _showExitConfirmationDialog(context, primaryColor),
                         icon: Icon(
                           Icons.logout_rounded,
                           size: 18,
-                          color: Colors.grey[500],
+                          color: Brand.textSecondary,
                         ),
                         label: Text(
                           'Sair do foco',
                           style: TextStyle(
-                            color: Colors.grey[500],
+                            color: Brand.textSecondary,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -360,7 +352,7 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
               const SizedBox(height: 8),
               Text(
                 'Se você sair agora, o progresso deste ciclo de foco não será salvo.',
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                style: TextStyle(fontSize: 14, color: Brand.textSecondary),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
@@ -378,7 +370,7 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
                   child: const Text(
                     'Continuar no foco',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: Brand.surface,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -387,13 +379,13 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
               const SizedBox(height: 12),
               TextButton(
                 onPressed: () {
-                  Navigator.of(ctx).pop(); // Close dialog
-                  Navigator.of(context).pop(); // Close page
+                  Navigator.of(ctx).pop();
+                  Navigator.of(context).pop();
                 },
                 child: Text(
                   'Sim, sair agora',
                   style: TextStyle(
-                    color: Colors.grey[500],
+                    color: Brand.textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -422,11 +414,11 @@ class _TimerCard extends StatelessWidget {
           height: 100,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Brand.surface,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
+                color: Brand.shadow,
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -447,7 +439,7 @@ class _TimerCard extends StatelessWidget {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
-            color: Colors.grey[400],
+            color: Brand.textSecondary,
             letterSpacing: 1.2,
           ),
         ),

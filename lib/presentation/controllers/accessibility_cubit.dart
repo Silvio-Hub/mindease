@@ -86,7 +86,6 @@ class AccessibilityCubit extends Cubit<AccessibilityState> {
   }
 
   Future<void> setHighContrast(bool on) async {
-    // [A11Y-Cog] Alto contraste melhora legibilidade em ambientes cognitivos
     await updateContrast(on);
     emit(state.copyWith(highContrast: on));
   }

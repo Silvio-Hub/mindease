@@ -9,12 +9,9 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<User> login(String email, String password) async {
-    // Simulação de chamada de API
     await Future.delayed(const Duration(seconds: 2));
 
     if (email.isNotEmpty && password.length >= 6) {
-      // Mock de sucesso para qualquer email válido e senha >= 6 chars
-      // Em um cenário real, validaria contra API ou banco local
       final user = User(id: '1', email: email, name: email.split('@').first);
       await _dataSource.saveUser(user);
       return user;

@@ -74,7 +74,7 @@ class _FocusSettingsPageState extends State<FocusSettingsPage> {
             ),
             Text(
               'Personalize sua experiência',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
+              style: TextStyle(fontSize: 14, color: Brand.textSecondary),
             ),
           ],
         ),
@@ -104,11 +104,11 @@ class _FocusSettingsPageState extends State<FocusSettingsPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Brand.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Brand.textMain.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -132,7 +132,7 @@ class _FocusSettingsPageState extends State<FocusSettingsPage> {
             children: [
               const Text(
                 'Como você está se sentindo agora?',
-                style: TextStyle(color: Colors.grey, fontSize: 14),
+                style: TextStyle(color: Brand.textSecondary, fontSize: 14),
               ),
               const SizedBox(height: 16),
               SegmentedButton<EnergyLevel>(
@@ -151,7 +151,7 @@ class _FocusSettingsPageState extends State<FocusSettingsPage> {
                     if (states.contains(WidgetState.selected)) {
                       return Brand.primary;
                     }
-                    return Colors.grey[700];
+                    return Brand.textSecondary;
                   }),
                 ),
                 segments: const [
@@ -194,7 +194,7 @@ class _FocusSettingsPageState extends State<FocusSettingsPage> {
             activeTrackColor: Brand.primary,
             thumbColor: WidgetStateProperty.resolveWith<Color?>((states) {
               if (states.contains(WidgetState.selected)) {
-                return Colors.white;
+                return Brand.textWhite;
               }
               return null;
             }),
@@ -205,7 +205,7 @@ class _FocusSettingsPageState extends State<FocusSettingsPage> {
             ),
             subtitle: const Text(
               'Silencia notificações não urgentes.',
-              style: TextStyle(color: Colors.grey, fontSize: 13),
+              style: TextStyle(color: Brand.textSecondary, fontSize: 13),
             ),
           ),
         ),
@@ -230,7 +230,7 @@ class _FocusSettingsPageState extends State<FocusSettingsPage> {
               const SizedBox(height: 8),
               const Text(
                 'Ajuste a quantidade de detalhes exibidos na tela.',
-                style: TextStyle(color: Colors.grey, fontSize: 13),
+                style: TextStyle(color: Brand.textSecondary, fontSize: 13),
               ),
               const SizedBox(height: 16),
               SegmentedButton<InfoDensity>(
@@ -249,7 +249,7 @@ class _FocusSettingsPageState extends State<FocusSettingsPage> {
                     if (states.contains(WidgetState.selected)) {
                       return Brand.primary;
                     }
-                    return Colors.grey[700];
+                    return Brand.textSecondary;
                   }),
                 ),
                 segments: const [
@@ -293,7 +293,7 @@ class _FocusSettingsPageState extends State<FocusSettingsPage> {
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Brand.primary,
-          foregroundColor: Colors.white,
+          foregroundColor: Brand.textWhite,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -311,7 +311,6 @@ class _FocusSettingsPageState extends State<FocusSettingsPage> {
     return Center(
       child: TextButton.icon(
         onPressed: () async {
-          // Mostrar diálogo de confirmação
           final confirm = await showDialog<bool>(
             context: context,
             builder: (context) => AlertDialog(
@@ -324,14 +323,14 @@ class _FocusSettingsPageState extends State<FocusSettingsPage> {
                   onPressed: () => Navigator.pop(context, false),
                   child: const Text(
                     'Cancelar',
-                    style: TextStyle(color: Colors.grey),
+                    style: TextStyle(color: Brand.textSecondary),
                   ),
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(context, true),
                   child: const Text(
                     'Sair',
-                    style: TextStyle(color: Colors.red),
+                    style: TextStyle(color: Brand.error),
                   ),
                 ),
               ],
@@ -349,10 +348,10 @@ class _FocusSettingsPageState extends State<FocusSettingsPage> {
             }
           }
         },
-        icon: const Icon(Icons.logout, color: Colors.red),
+        icon: const Icon(Icons.logout, color: Brand.error),
         label: const Text(
           'Sair da Conta',
-          style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
+          style: TextStyle(color: Brand.error, fontWeight: FontWeight.w600),
         ),
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),

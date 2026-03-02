@@ -48,10 +48,7 @@ class PomodoroCubit extends Cubit<PomodoroState> {
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
       final r = state.remaining - const Duration(seconds: 1);
       if (r < Duration.zero) {
-        // Timer finished for current phase
         if (state.isWorkPhase) {
-          // Switch to rest
-          // [A11Y-Cog] Transição previsível entre fases, sem animações
           emit(
             PomodoroState(
               remaining: rest,
@@ -61,7 +58,6 @@ class PomodoroCubit extends Cubit<PomodoroState> {
             ),
           );
         } else {
-          // Switch back to work
           emit(
             PomodoroState(
               remaining: work,

@@ -36,7 +36,6 @@ class DashboardPage extends StatelessWidget {
                   state.summaryMode ? 'Modo Resumo' : 'Modo Detalhado',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
-                // [A11Y-Cog] UI simplificada e previsível para modo foco
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () {
