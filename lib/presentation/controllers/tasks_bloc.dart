@@ -31,7 +31,8 @@ class MoveTask extends TasksEvent {
 class TasksState {
   final List<Task> tasks;
   final bool loading;
-  const TasksState({required this.tasks, this.loading = false});
+  final String? error;
+  const TasksState({required this.tasks, this.loading = false, this.error});
 }
 
 class TasksBloc extends Bloc<TasksEvent, TasksState> {
@@ -46,27 +47,47 @@ class TasksBloc extends Bloc<TasksEvent, TasksState> {
 
   Future<void> _onLoad(LoadTasks event, Emitter<TasksState> emit) async {
     emit(TasksState(tasks: state.tasks, loading: true));
-    final list = await repo.list();
-    emit(TasksState(tasks: list, loading: false));
+    try {
+      final list = await repo.list();
+      emit(TasksState(tasks: list, loading: false));
+    } catch (e) {
+      emit(TasksState(tasks: state.tasks, loading: false, error: e.toString()));
+    }
   }
 
   Future<void> _onAdd(AddTask event, Emitter<TasksState> emit) async {
-    await repo.save(event.task);
-    add(LoadTasks());
+    try {
+      await repo.save(event.task);
+      add(LoadTasks());
+    } catch (e) {
+      emit(TasksState(tasks: state.tasks, error: e.toString()));
+    }
   }
 
   Future<void> _onUpdate(UpdateTask event, Emitter<TasksState> emit) async {
-    await repo.save(event.task);
-    add(LoadTasks());
+    try {
+      await repo.save(event.task);
+      add(LoadTasks());
+    } catch (e) {
+      emit(TasksState(tasks: state.tasks, error: e.toString()));
+    }
   }
 
   Future<void> _onDelete(DeleteTask event, Emitter<TasksState> emit) async {
-    await repo.delete(event.id);
-    add(LoadTasks());
+    try {
+      await repo.delete(event.id);
+      add(LoadTasks());
+    } catch (e) {
+      emit(TasksState(tasks: state.tasks, error: e.toString()));
+    }
   }
 
   Future<void> _onMove(MoveTask event, Emitter<TasksState> emit) async {
-    await repo.move(event.id, inProgress: event.inProgress, done: event.done);
-    add(LoadTasks());
+    try {
+      await repo.move(event.id, inProgress: event.inProgress, done: event.done);
+      add(LoadTasks());
+    } catch (e) {
+      emit(TasksState(tasks: state.tasks, error: e.toString()));
+    }
   }
 }

@@ -4,9 +4,9 @@ import 'package:mindease/core/constants/brand.dart';
 import 'package:mindease/domain/entities/task.dart';
 
 class EditTaskPage extends StatefulWidget {
-  final String initialTitle;
+  final Task task;
 
-  const EditTaskPage({super.key, required this.initialTitle});
+  const EditTaskPage({super.key, required this.task});
 
   @override
   State<EditTaskPage> createState() => _EditTaskPageState();
@@ -16,18 +16,49 @@ class _EditTaskPageState extends State<EditTaskPage> {
   late final TextEditingController _titleCtrl;
   final _stepCtrls = List.generate(3, (_) => TextEditingController());
 
-  int _estimateMinutes = 45;
-  TaskEnergy _energy = TaskEnergy.high;
+  late int _estimateMinutes;
+  late TaskEnergy _energy;
 
-  int _dateOption = 2;
-  DateTime? _selectedCustomDate = DateTime(2024, 10, 27);
+  late int _dateOption;
+  DateTime? _selectedCustomDate;
 
   @override
   void initState() {
     super.initState();
-    _titleCtrl = TextEditingController(text: widget.initialTitle);
-    _stepCtrls[0].text = "Revisar anotações da aula";
-    _stepCtrls[1].text = "Criar slides";
+    final t = widget.task;
+    _titleCtrl = TextEditingController(text: t.title);
+
+    // Inicializa checklist (até 3 itens)
+    for (int i = 0; i < 3; i++) {
+      if (i < t.checklist.length) {
+        _stepCtrls[i].text = t.checklist[i];
+      }
+    }
+
+    _estimateMinutes = t.durationMinutes ?? 30;
+    _energy = t.energy ?? TaskEnergy.medium;
+
+    // Lógica de data
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(const Duration(days: 1));
+
+    if (t.dueDate == null) {
+      _dateOption = 2; // Ou outra lógica para sem data
+      _selectedCustomDate = null;
+    } else {
+      final d = DateTime(t.dueDate!.year, t.dueDate!.month, t.dueDate!.day);
+      if (d == today) {
+        _dateOption = 0;
+        _selectedCustomDate = t.dueDate;
+      } else if (d == tomorrow) {
+        _dateOption = 1;
+        _selectedCustomDate = t.dueDate;
+      } else {
+        _dateOption = 2;
+        _selectedCustomDate = t.dueDate;
+      }
+    }
   }
 
   @override

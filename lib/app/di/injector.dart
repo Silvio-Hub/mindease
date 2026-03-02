@@ -16,6 +16,7 @@ import 'package:mindease/domain/usecases/update_contrast.dart';
 import 'package:mindease/presentation/controllers/accessibility_cubit.dart';
 import 'package:mindease/data/datasources/tasks_local_datasource.dart';
 import 'package:mindease/data/repositories/task_repository_impl.dart';
+import 'package:mindease/domain/entities/task.dart';
 import 'package:mindease/domain/repositories/task_repository.dart';
 import 'package:mindease/presentation/controllers/tasks_bloc.dart';
 
@@ -23,8 +24,12 @@ final sl = GetIt.instance;
 
 Future<void> setupDependencies() async {
   await Hive.initFlutter();
+
+  Hive.registerAdapter(TaskAdapter());
+  Hive.registerAdapter(TaskEnergyAdapter());
+
   final prefsBox = await Hive.openBox<Map>('preferencesBox');
-  final tasksBox = await Hive.openBox<Map>('tasksBox');
+  final tasksBox = await Hive.openBox<Task>('tasksBox');
   final authBox = await Hive.openBox<Map>('authBox');
 
   sl.registerLazySingleton(() => PreferencesLocalDataSource(prefsBox));

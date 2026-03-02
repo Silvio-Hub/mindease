@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mindease/core/constants/brand.dart';
 import 'package:mindease/domain/entities/task.dart';
+import 'package:mindease/presentation/controllers/tasks_bloc.dart';
+import 'package:mindease/presentation/pages/add_task_page.dart';
 import 'package:mindease/presentation/pages/edit_task_page.dart';
 import 'package:mindease/presentation/pages/focus_session_page.dart';
+import 'package:mindease/app/di/injector.dart';
+import 'package:mindease/domain/entities/user.dart';
+import 'package:mindease/domain/repositories/auth_repository.dart';
 
 class FocusDashboardPage extends StatefulWidget {
   final VoidCallback? onSeeAllTasks;
@@ -14,37 +20,47 @@ class FocusDashboardPage extends StatefulWidget {
 }
 
 class _FocusDashboardPageState extends State<FocusDashboardPage> {
-  Task? currentFocusTask = const Task(
-    id: 'focus-1',
-    title: 'Preparar apresentação de vendas',
-    durationMinutes: 45,
-    energy: TaskEnergy.high,
-  );
+  String? _focusTaskId;
 
-  List<Task> tasks = [
-    const Task(
-      id: '1',
-      title: 'Revisar e-mails',
-      durationMinutes: 15,
-      energy: TaskEnergy.high,
-    ),
-    const Task(
-      id: '2',
-      title: 'Pausa para café',
-      durationMinutes: 15,
-      energy: TaskEnergy.low,
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    context.read<TasksBloc>().add(LoadTasks());
+  }
+
+  Task? _getTask(List<Task> tasks) {
+    if (tasks.isEmpty) return null;
+
+    // First try to find the explicitly selected focus task
+    if (_focusTaskId != null) {
+      try {
+        final task = tasks.firstWhere((t) => t.id == _focusTaskId);
+        // If the task is done, we might want to clear focus or keep it?
+        // Let's keep it for now, or clear it if we want to auto-switch.
+        return task;
+      } catch (_) {
+        // Task not found (maybe deleted), reset focus
+        // Don't call setState here during build
+      }
+    }
+
+    // Default to first pending or in-progress task
+    try {
+      // Prioritize in-progress
+      try {
+        return tasks.firstWhere((t) => t.inProgress && !t.done);
+      } catch (_) {
+        // Then pending
+        return tasks.firstWhere((t) => !t.done);
+      }
+    } catch (_) {
+      return null; // All done or empty
+    }
+  }
 
   void _promoteTaskToFocus(Task task) {
     setState(() {
-      if (currentFocusTask != null) {
-        tasks.insert(0, currentFocusTask!);
-      }
-
-      tasks.removeWhere((t) => t.id == task.id);
-
-      currentFocusTask = task;
+      _focusTaskId = task.id;
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -56,29 +72,32 @@ class _FocusDashboardPageState extends State<FocusDashboardPage> {
     );
   }
 
-  void _onEditFocusTask() async {
-    if (currentFocusTask == null) return;
-
+  void _onEditFocusTask(Task task) async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => EditTaskPage(initialTitle: currentFocusTask!.title),
-      ),
+      MaterialPageRoute(builder: (_) => EditTaskPage(task: task)),
     );
 
     if (!mounted) return;
 
     if (result != null && result is Map) {
-      setState(() {
-        currentFocusTask = currentFocusTask!.copyWith(title: result['title']);
-      });
+      final updated = task.copyWith(
+        title: result['title'],
+        checklist: (result['steps'] as List?)?.cast<String>() ?? [],
+        durationMinutes: result['estimate'],
+        energy: result['energy'],
+        dueDate: result['dueDate'],
+      );
+
+      context.read<TasksBloc>().add(UpdateTask(updated));
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Tarefa em foco atualizada!')),
       );
     }
   }
 
-  void _onDeleteFocusTask() {
+  void _onDeleteFocusTask(Task task) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -91,9 +110,12 @@ class _FocusDashboardPageState extends State<FocusDashboardPage> {
           ),
           TextButton(
             onPressed: () {
-              setState(() {
-                currentFocusTask = null;
-              });
+              context.read<TasksBloc>().add(DeleteTask(task.id));
+
+              if (_focusTaskId == task.id) {
+                setState(() => _focusTaskId = null);
+              }
+
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Tarefa em foco excluída!')),
@@ -106,39 +128,41 @@ class _FocusDashboardPageState extends State<FocusDashboardPage> {
     );
   }
 
-  void _onAddNewFocusTask() {
-    setState(() {
-      currentFocusTask = const Task(
-        id: 'new-focus',
-        title: 'Nova Tarefa',
-        durationMinutes: 30,
-        energy: TaskEnergy.medium,
-      );
-    });
-  }
-
-  void _onEditTaskInList(Task task) async {
+  void _onAddNewFocusTask() async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => EditTaskPage(initialTitle: task.title)),
+      MaterialPageRoute(builder: (_) => const AddTaskPage()),
     );
 
-    if (!mounted) return;
-
-    if (result != null && result is Map) {
-      setState(() {
-        final index = tasks.indexWhere((t) => t.id == task.id);
-        if (index != -1) {
-          tasks[index] = tasks[index].copyWith(title: result['title']);
-        }
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tarefa atualizada com sucesso!')),
+    if (result != null && result is Map && mounted) {
+      final newTask = Task(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        title: result['title'],
+        checklist: (result['steps'] as List?)?.cast<String>() ?? [],
+        durationMinutes: result['estimate'],
+        energy: result['energy'],
+        dueDate: result['dueDate'],
       );
+
+      context.read<TasksBloc>().add(AddTask(newTask));
+
+      // Auto-focus on new task
+      setState(() {
+        _focusTaskId = newTask.id;
+      });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Nova tarefa em foco!')));
     }
   }
 
+  void _onEditTaskInList(Task task) async {
+    _onEditFocusTask(task);
+  }
+
   void _onDeleteTaskInList(Task task) {
+    // Use generic delete but handle UI feedback appropriately
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -151,9 +175,7 @@ class _FocusDashboardPageState extends State<FocusDashboardPage> {
           ),
           TextButton(
             onPressed: () {
-              setState(() {
-                tasks.removeWhere((t) => t.id == task.id);
-              });
+              context.read<TasksBloc>().add(DeleteTask(task.id));
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Tarefa excluída com sucesso!')),
@@ -166,90 +188,105 @@ class _FocusDashboardPageState extends State<FocusDashboardPage> {
     );
   }
 
-  void _onStartFocusSession() {
+  void _onStartFocusSession(Task task) {
     Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (_) => const FocusSessionPage()));
+    ).push(MaterialPageRoute(builder: (_) => FocusSessionPage(task: task)));
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Brand.background,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const _Header(),
-              const SizedBox(height: 24),
+    return BlocBuilder<TasksBloc, TasksState>(
+      builder: (context, state) {
+        final allTasks = state.tasks;
+        final currentFocusTask = _getTask(allTasks);
 
-              _FocusCard(
-                task: currentFocusTask,
-                onEdit: _onEditFocusTask,
-                onDelete: _onDeleteFocusTask,
-                onStart: _onStartFocusSession,
-                onAdd: _onAddNewFocusTask,
+        // Filter out the focus task from the list below and only show pending/in-progress
+        final otherTasks = allTasks
+            .where((t) => t.id != currentFocusTask?.id && !t.done)
+            .toList();
+
+        return Scaffold(
+          backgroundColor: Brand.background,
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 24.0,
               ),
-              const SizedBox(height: 32),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Próximas Tarefas',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Brand.textMain,
-                    ),
+                  const _Header(),
+                  const SizedBox(height: 24),
+
+                  _FocusCard(
+                    task: currentFocusTask,
+                    onEdit: () => _onEditFocusTask(currentFocusTask!),
+                    onDelete: () => _onDeleteFocusTask(currentFocusTask!),
+                    onStart: () => _onStartFocusSession(currentFocusTask!),
+                    onAdd: _onAddNewFocusTask,
                   ),
-                  TextButton(
-                    onPressed: widget.onSeeAllTasks,
-                    child: const Text(
-                      'Ver todas',
-                      style: TextStyle(
-                        color: Brand.primary,
-                        fontWeight: FontWeight.w600,
+                  const SizedBox(height: 32),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Próximas Tarefas',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Brand.textMain,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: widget.onSeeAllTasks,
+                        child: const Text(
+                          'Ver todas',
+                          style: TextStyle(
+                            color: Brand.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  if (otherTasks.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.all(24.0),
+                      child: Center(
+                        child: Text(
+                          'Nenhuma tarefa pendente.',
+                          style: TextStyle(color: Brand.textSecondary),
+                        ),
+                      ),
+                    )
+                  else
+                    ...otherTasks.map(
+                      (task) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: _TaskItem(
+                          task: task,
+                          onEdit: () => _onEditTaskInList(task),
+                          onDelete: () => _onDeleteTaskInList(task),
+                          onStartFocus: () => _promoteTaskToFocus(task),
+                        ),
                       ),
                     ),
-                  ),
+
+                  const SizedBox(height: 32),
+
+                  const _WellBeingTip(),
+                  const SizedBox(height: 80),
                 ],
               ),
-              const SizedBox(height: 12),
-
-              if (tasks.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.all(24.0),
-                  child: Center(
-                    child: Text(
-                      'Nenhuma tarefa pendente.',
-                      style: TextStyle(color: Brand.textSecondary),
-                    ),
-                  ),
-                )
-              else
-                ...tasks.map(
-                  (task) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12.0),
-                    child: _TaskItem(
-                      task: task,
-                      onEdit: () => _onEditTaskInList(task),
-                      onDelete: () => _onDeleteTaskInList(task),
-                      onStartFocus: () => _promoteTaskToFocus(task),
-                    ),
-                  ),
-                ),
-
-              const SizedBox(height: 32),
-
-              const _WellBeingTip(),
-              const SizedBox(height: 80),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -259,23 +296,33 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Olá, como você está hoje?',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Brand.textMain,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Aqui está o seu foco para este momento.',
-          style: TextStyle(fontSize: 16, color: Brand.textSecondary),
-        ),
-      ],
+    return FutureBuilder<User?>(
+      future: sl<AuthRepository>().getCurrentUser(),
+      builder: (context, snapshot) {
+        final userName = snapshot.data?.name ?? '';
+        final firstName = userName.trim().isNotEmpty
+            ? userName.trim().split(' ').first
+            : 'Visitante';
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Olá $firstName, como você está hoje?',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Brand.textMain,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Aqui está o seu foco para este momento.',
+              style: TextStyle(fontSize: 16, color: Brand.textSecondary),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -324,8 +371,19 @@ class _FocusCard extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Brand.primary,
                 foregroundColor: Brand.textWhite,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 16,
+                  horizontal: 24,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
               ),
-              child: const Text('Adicionar tarefa'),
+              child: const Text(
+                'Adicionar tarefa',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
             ),
           ],
         ),

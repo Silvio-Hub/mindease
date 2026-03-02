@@ -4,7 +4,12 @@ import 'package:mindease/core/constants/brand.dart';
 import 'package:mindease/domain/entities/task.dart';
 
 class AddTaskPage extends StatefulWidget {
-  const AddTaskPage({super.key});
+  final int initialDateOption;
+
+  const AddTaskPage({
+    super.key,
+    this.initialDateOption = 0,
+  });
 
   @override
   State<AddTaskPage> createState() => _AddTaskPageState();
@@ -17,8 +22,14 @@ class _AddTaskPageState extends State<AddTaskPage> {
   int _estimateMinutes = 30;
   TaskEnergy _energy = TaskEnergy.medium;
 
-  int _dateOption = 1;
+  late int _dateOption;
   DateTime? _selectedCustomDate;
+
+  @override
+  void initState() {
+    super.initState();
+    _dateOption = widget.initialDateOption;
+  }
 
   @override
   void dispose() {

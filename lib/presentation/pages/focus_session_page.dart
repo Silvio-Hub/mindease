@@ -1,38 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mindease/core/constants/brand.dart';
+import 'package:mindease/domain/entities/task.dart';
 import 'package:mindease/presentation/controllers/pomodoro_cubit.dart';
 import 'package:mindease/presentation/pages/focus_summary_page.dart';
 
 class FocusSessionPage extends StatefulWidget {
   final bool startInRestMode;
+  final Task? task;
 
-  const FocusSessionPage({super.key, this.startInRestMode = false});
+  const FocusSessionPage({super.key, this.startInRestMode = false, this.task});
 
   @override
   State<FocusSessionPage> createState() => _FocusSessionPageState();
 }
 
 class _FocusSessionPageState extends State<FocusSessionPage> {
-  final tasks = [
-    {'title': 'Revisar anotações da aula', 'done': false},
-    {'title': 'Criar slides', 'done': false},
-  ];
+  late List<Map<String, dynamic>> _checklist;
+
+  @override
+  void initState() {
+    super.initState();
+    _checklist =
+        widget.task?.checklist
+            .map((item) => {'title': item, 'done': false})
+            .toList() ??
+        [];
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => PomodoroCubit(
-        work: const Duration(minutes: 45),
-        rest: const Duration(minutes: 5),
-        startInRestMode: widget.startInRestMode,
-      ),
+      create: (_) {
+        final duration = widget.task?.durationMinutes ?? 45;
+        return PomodoroCubit(
+          work: Duration(minutes: duration),
+          rest: const Duration(minutes: 5),
+          startInRestMode: widget.startInRestMode,
+        );
+      },
       child: BlocListener<PomodoroCubit, PomodoroState>(
         listener: (context, state) {
           if (state.status == PomodoroStatus.finishedWork) {
+            final duration = widget.task?.durationMinutes ?? 45;
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(
-                builder: (_) => const FocusSummaryPage(completedMinutes: 45),
+                builder: (_) => FocusSummaryPage(completedMinutes: duration),
               ),
             );
           } else if (state.status == PomodoroStatus.finishedRest) {
@@ -119,7 +132,6 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
                       BlocBuilder<PomodoroCubit, PomodoroState>(
                         builder: (context, state) {
                           final minutes = state.remaining.inMinutes
-                              .remainder(60)
                               .toString()
                               .padLeft(2, '0');
                           final seconds = state.remaining.inSeconds
@@ -148,17 +160,17 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
 
                       const SizedBox(height: 32),
 
-                      const Text(
-                        'Preparar apresentação',
+                      Text(
+                        widget.task?.title ?? 'Sessão de Foco',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: Brand.textMain,
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(
+                      const Text(
                         'Mantenha o foco. Você está indo bem.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
@@ -169,53 +181,54 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
 
                       const SizedBox(height: 32),
 
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Brand.surface,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        padding: const EdgeInsets.all(8),
-                        child: Column(
-                          children: tasks.asMap().entries.map((entry) {
-                            final index = entry.key;
-                            final task = entry.value;
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 8),
-                              decoration: BoxDecoration(
-                                color: Brand.backgroundAlt,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: CheckboxListTile(
-                                value: task['done'] as bool,
-                                onChanged: (value) {
-                                  setState(() {
-                                    tasks[index]['done'] = value!;
-                                  });
-                                },
-                                title: Text(
-                                  task['title'] as String,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Brand.textMain,
-                                    decoration: (task['done'] as bool)
-                                        ? TextDecoration.lineThrough
-                                        : null,
+                      if (_checklist.isNotEmpty)
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Brand.surface,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          padding: const EdgeInsets.all(8),
+                          child: Column(
+                            children: _checklist.asMap().entries.map((entry) {
+                              final index = entry.key;
+                              final item = entry.value;
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 8),
+                                decoration: BoxDecoration(
+                                  color: Brand.backgroundAlt,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: CheckboxListTile(
+                                  value: item['done'] as bool,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _checklist[index]['done'] = value!;
+                                    });
+                                  },
+                                  title: Text(
+                                    item['title'] as String,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Brand.textMain,
+                                      decoration: (item['done'] as bool)
+                                          ? TextDecoration.lineThrough
+                                          : null,
+                                    ),
+                                  ),
+                                  controlAffinity:
+                                      ListTileControlAffinity.leading,
+                                  activeColor: primaryColor,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                  ),
+                                  checkboxShape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4),
                                   ),
                                 ),
-                                controlAffinity:
-                                    ListTileControlAffinity.leading,
-                                activeColor: primaryColor,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                ),
-                                checkboxShape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                              ),
-                            );
-                          }).toList(),
+                              );
+                            }).toList(),
+                          ),
                         ),
-                      ),
 
                       const Spacer(),
 

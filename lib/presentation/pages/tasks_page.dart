@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mindease/app/di/injector.dart';
 import 'package:mindease/core/constants/brand.dart';
 import 'package:mindease/domain/entities/task.dart';
 import 'package:mindease/presentation/controllers/tasks_bloc.dart';
 import 'package:mindease/presentation/pages/add_task_page.dart';
+import 'package:mindease/presentation/pages/edit_task_page.dart';
 
 class TasksPage extends StatefulWidget {
   const TasksPage({super.key});
@@ -41,13 +41,44 @@ class _TasksPageState extends State<TasksPage>
     super.dispose();
   }
 
+  bool _isSameDay(DateTime? d1, DateTime? d2) {
+    if (d1 == null || d2 == null) return false;
+    return d1.year == d2.year && d1.month == d2.month && d1.day == d2.day;
+  }
+
   List<Task> _filterTasks(List<Task> tasks) {
-    return tasks.where((t) {
+    final filtered = tasks.where((t) {
       final matchesSearch = t.title.toLowerCase().contains(
         _searchQuery.toLowerCase(),
       );
-      return matchesSearch;
+
+      bool matchesDate = false;
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final tomorrow = today.add(const Duration(days: 1));
+      // taskDate is already stripped of time in previous logic, but let's be safe
+      // and use _isSameDay with original t.dueDate if possible.
+      
+      if (_selectedDateFilterIndex == 0) {
+        matchesDate = _isSameDay(t.dueDate, today);
+      } else if (_selectedDateFilterIndex == 1) {
+        matchesDate = _isSameDay(t.dueDate, tomorrow);
+      } else {
+        // Other days: not today AND not tomorrow
+        matchesDate = !_isSameDay(t.dueDate, today) && !_isSameDay(t.dueDate, tomorrow);
+      }
+
+      return matchesSearch && matchesDate;
     }).toList();
+
+    filtered.sort((a, b) {
+      if (a.dueDate == null && b.dueDate == null) return 0;
+      if (a.dueDate == null) return 1;
+      if (b.dueDate == null) return -1;
+      return a.dueDate!.compareTo(b.dueDate!);
+    });
+
+    return filtered;
   }
 
   @override
@@ -60,377 +91,380 @@ class _TasksPageState extends State<TasksPage>
         ? 'Visualize o progresso das suas atividades.'
         : 'Sua lista organizada por prioridade.';
 
-    return BlocProvider(
-      create: (_) => sl<TasksBloc>()..add(LoadTasks()),
-      child: Scaffold(
-        backgroundColor: Brand.backgroundAlt,
-        body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
+    return Scaffold(
+      backgroundColor: Brand.backgroundAlt,
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Brand.textMain,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          subtitle,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: Brand.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Brand.border,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.all(4),
+                    child: Row(
+                      children: [
+                        _ViewToggleButton(
+                          label: 'Lista',
+                          isSelected: _viewMode == TaskViewMode.list,
+                          onTap: () =>
+                              setState(() => _viewMode = TaskViewMode.list),
+                        ),
+                        _ViewToggleButton(
+                          label: 'Kanban',
+                          isSelected: _viewMode == TaskViewMode.kanban,
+                          onTap: () =>
+                              setState(() => _viewMode = TaskViewMode.kanban),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Procurar tarefa...',
+                  prefixIcon: Icon(Icons.search, color: Brand.textLight),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: Brand.surface,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Brand.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Brand.primary),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                children: [
+                  _DateFilterChip(
+                    label: 'Hoje',
+                    isSelected: _selectedDateFilterIndex == 0,
+                    onTap: () => setState(() => _selectedDateFilterIndex = 0),
+                  ),
+                  const SizedBox(width: 8),
+                  _DateFilterChip(
+                    label: 'Amanhã',
+                    isSelected: _selectedDateFilterIndex == 1,
+                    onTap: () => setState(() => _selectedDateFilterIndex = 1),
+                  ),
+                  const SizedBox(width: 8),
+                  _DateFilterChip(
+                    label: 'Outro dia',
+                    isSelected: _selectedDateFilterIndex == 2,
+                    icon: Icons.calendar_today,
+                    onTap: () => setState(() => _selectedDateFilterIndex = 2),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            Expanded(
+              child: BlocBuilder<TasksBloc, TasksState>(
+                builder: (ctx, state) {
+                  final filtered = _filterTasks(state.tasks);
+
+                  if (_viewMode == TaskViewMode.kanban) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        TabBar(
+                          controller: _tabController,
+                          isScrollable: true,
+                          tabAlignment: TabAlignment.start,
+                          labelColor: Brand.primary,
+                          unselectedLabelColor: Brand.textSecondary,
+                          indicatorColor: Brand.primary,
+                          indicatorSize: TabBarIndicatorSize.label,
+                          dividerColor: Brand.transparent,
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          tabs: const [
+                            Tab(text: 'PENDENTE'),
+                            Tab(text: 'EM PROGRESSO'),
+                            Tab(text: 'CONCLUÍDO'),
+                          ],
+                        ),
+                        Expanded(
+                          child: TabBarView(
+                            controller: _tabController,
+                            children: [
+                              _TaskListView(
+                                items: filtered
+                                    .where((t) => !t.inProgress && !t.done)
+                                    .toList(),
+                                emptyMessage: 'Nenhuma tarefa pendente.',
+                                emptyIcon: Icons.playlist_add,
+                                statusColor: Brand.textSecondary,
+                              ),
+                              _TaskListView(
+                                items: filtered
+                                    .where((t) => t.inProgress && !t.done)
+                                    .toList(),
+                                emptyMessage: 'Nenhuma tarefa em progresso.',
+                                emptyIcon: Icons.self_improvement,
+                                statusColor: Brand.warning,
+                              ),
+                              _TaskListView(
+                                items: filtered.where((t) => t.done).toList(),
+                                emptyMessage: 'Nenhuma tarefa concluída.',
+                                emptyIcon: Icons.check_circle_outline,
+                                statusColor: Brand.success,
+                                isDone: true,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+
+                  final pendingTasks = filtered
+                      .where((t) => !t.inProgress && !t.done)
+                      .toList();
+                  final inProgressTasks = filtered
+                      .where((t) => t.inProgress && !t.done)
+                      .toList();
+                  final doneTasks = filtered.where((t) => t.done).toList();
+
+                  if (filtered.isEmpty) {
+                    return Center(
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            title,
-                            style: theme.textTheme.headlineSmall?.copyWith(
+                          Icon(
+                            Icons.spa,
+                            size: 64,
+                            color: Brand.primary.withValues(alpha: 0.2),
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'Sua lista está limpa',
+                            style: TextStyle(
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: Brand.textMain,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 8),
                           Text(
-                            subtitle,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: Brand.textSecondary,
-                            ),
+                            'Que tal aproveitar este momento para planejar algo novo?',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Brand.textSecondary),
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Brand.border,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.all(4),
-                      child: Row(
-                        children: [
-                          _ViewToggleButton(
-                            label: 'Lista',
-                            isSelected: _viewMode == TaskViewMode.list,
-                            onTap: () =>
-                                setState(() => _viewMode = TaskViewMode.list),
-                          ),
-                          _ViewToggleButton(
-                            label: 'Kanban',
-                            isSelected: _viewMode == TaskViewMode.kanban,
-                            onTap: () =>
-                                setState(() => _viewMode = TaskViewMode.kanban),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+                    );
+                  }
 
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Procurar tarefa...',
-                    prefixIcon: Icon(Icons.search, color: Brand.textLight),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    filled: true,
-                    fillColor: Brand.surface,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 14,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Brand.border),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Brand.primary),
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
-                  children: [
-                    _DateFilterChip(
-                      label: 'Hoje',
-                      isSelected: _selectedDateFilterIndex == 0,
-                      onTap: () => setState(() => _selectedDateFilterIndex = 0),
-                    ),
-                    const SizedBox(width: 8),
-                    _DateFilterChip(
-                      label: 'Amanhã',
-                      isSelected: _selectedDateFilterIndex == 1,
-                      onTap: () => setState(() => _selectedDateFilterIndex = 1),
-                    ),
-                    const SizedBox(width: 8),
-                    _DateFilterChip(
-                      label: 'Outro dia',
-                      isSelected: _selectedDateFilterIndex == 2,
-                      icon: Icons.calendar_today,
-                      onTap: () => setState(() => _selectedDateFilterIndex = 2),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              Expanded(
-                child: BlocBuilder<TasksBloc, TasksState>(
-                  builder: (ctx, state) {
-                    final filtered = _filterTasks(state.tasks);
-
-                    if (_viewMode == TaskViewMode.kanban) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          TabBar(
-                            controller: _tabController,
-                            isScrollable: true,
-                            tabAlignment: TabAlignment.start,
-                            labelColor: Brand.primary,
-                            unselectedLabelColor: Brand.textSecondary,
-                            indicatorColor: Brand.primary,
-                            indicatorSize: TabBarIndicatorSize.label,
-                            dividerColor: Brand.transparent,
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            tabs: const [
-                              Tab(text: 'PENDENTE'),
-                              Tab(text: 'EM PROGRESSO'),
-                              Tab(text: 'CONCLUÍDO'),
-                            ],
-                          ),
-                          Expanded(
-                            child: TabBarView(
-                              controller: _tabController,
-                              children: [
-                                _TaskListView(
-                                  items: filtered
-                                      .where((t) => !t.inProgress && !t.done)
-                                      .toList(),
-                                  emptyMessage: 'Nenhuma tarefa pendente.',
-                                  emptyIcon: Icons.playlist_add,
-                                  statusColor: Brand.textSecondary,
-                                ),
-                                _TaskListView(
-                                  items: filtered
-                                      .where((t) => t.inProgress && !t.done)
-                                      .toList(),
-                                  emptyMessage: 'Nenhuma tarefa em progresso.',
-                                  emptyIcon: Icons.self_improvement,
-                                  statusColor: Brand.warning,
-                                ),
-                                _TaskListView(
-                                  items: filtered.where((t) => t.done).toList(),
-                                  emptyMessage: 'Nenhuma tarefa concluída.',
-                                  emptyIcon: Icons.check_circle_outline,
-                                  statusColor: Brand.success,
-                                  isDone: true,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      );
-                    }
-
-                    final pendingTasks = filtered
-                        .where((t) => !t.inProgress && !t.done)
-                        .toList();
-                    final inProgressTasks = filtered
-                        .where((t) => t.inProgress && !t.done)
-                        .toList();
-                    final doneTasks = filtered.where((t) => t.done).toList();
-
-                    if (filtered.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                  return ListView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    children: [
+                      if (inProgressTasks.isNotEmpty) ...[
+                        Row(
                           children: [
-                            Icon(
-                              Icons.spa,
-                              size: 64,
-                              color: Brand.primary.withValues(alpha: 0.2),
+                            const Icon(
+                              Icons.self_improvement,
+                              size: 20,
+                              color: Brand.warning,
                             ),
-                            const SizedBox(height: 16),
-                            const Text(
-                              'Sua lista está limpa',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Brand.textMain,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
+                            const SizedBox(width: 8),
                             Text(
-                              'Que tal aproveitar este momento para planejar algo novo?',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: Brand.textSecondary),
+                              'EM PROGRESSO',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Brand.textSecondary,
+                                letterSpacing: 1.2,
+                                fontSize: 12,
+                              ),
                             ),
                           ],
                         ),
-                      );
-                    }
+                        const SizedBox(height: 16),
+                        ...inProgressTasks.map((task) => _TaskCard(task: task)),
+                        const SizedBox(height: 24),
+                      ],
 
-                    return ListView(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      children: [
-                        if (inProgressTasks.isNotEmpty) ...[
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.self_improvement,
-                                size: 20,
-                                color: Brand.warning,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'EM PROGRESSO',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Brand.textSecondary,
-                                  letterSpacing: 1.2,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          ...inProgressTasks.map(
-                            (task) => _TaskCard(task: task),
-                          ),
-                          const SizedBox(height: 24),
-                        ],
-
-                        if (pendingTasks.isNotEmpty) ...[
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.history_toggle_off,
-                                size: 20,
-                                color: Brand.textSecondary,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'TAREFAS PENDENTES',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Brand.textSecondary,
-                                  letterSpacing: 1.2,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          ...pendingTasks.map((task) => _TaskCard(task: task)),
-                        ],
-
-                        if (doneTasks.isNotEmpty) ...[
-                          const SizedBox(height: 24),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.check_circle_outline,
-                                size: 20,
-                                color: Brand.success,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'CONCLUÍDAS',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Brand.textSecondary,
-                                  letterSpacing: 1.2,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          ...doneTasks.map((task) => _TaskCard(task: task)),
-                        ],
-
-                        const SizedBox(height: 32),
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Brand.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Brand.primary.withValues(alpha: 0.2),
+                      if (pendingTasks.isNotEmpty) ...[
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.history_toggle_off,
+                              size: 20,
+                              color: Brand.textSecondary,
                             ),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.info_outline,
-                                color: Brand.primary,
-                                size: 24,
+                            const SizedBox(width: 8),
+                            Text(
+                              'TAREFAS PENDENTES',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Brand.textSecondary,
+                                letterSpacing: 1.2,
+                                fontSize: 12,
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  'As tarefas seguem a ordem de execução definida. Use os indicadores de energia para escolher a melhor tarefa.',
-                                  style: TextStyle(
-                                    color: Brand.primary,
-                                    fontSize: 13,
-                                    height: 1.4,
-                                  ),
-                                ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        ...pendingTasks.map((task) => _TaskCard(task: task)),
+                      ],
+
+                      if (doneTasks.isNotEmpty) ...[
+                        const SizedBox(height: 24),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.check_circle_outline,
+                              size: 20,
+                              color: Brand.success,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'CONCLUÍDAS',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Brand.textSecondary,
+                                letterSpacing: 1.2,
+                                fontSize: 12,
                               ),
-                            ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        ...doneTasks.map((task) => _TaskCard(task: task)),
+                      ],
+
+                      const SizedBox(height: 32),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Brand.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Brand.primary.withValues(alpha: 0.2),
                           ),
                         ),
-                        const SizedBox(height: 80),
-                      ],
-                    );
-                  },
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.info_outline,
+                              color: Brand.primary,
+                              size: 24,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'As tarefas seguem a ordem de execução definida. Use os indicadores de energia para escolher a melhor tarefa.',
+                                style: TextStyle(
+                                  color: Brand.primary,
+                                  fontSize: 13,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 80),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          final result = await Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => AddTaskPage(
+                initialDateOption: _selectedDateFilterIndex > 1
+                    ? 1
+                    : _selectedDateFilterIndex,
+              ),
+            ),
+          );
+
+          if (!context.mounted) return;
+
+          if (result is Map) {
+            final id = DateTime.now().millisecondsSinceEpoch.toString();
+            final title = (result['title'] as String?) ?? 'Nova tarefa';
+            final steps =
+                (result['steps'] as List?)?.cast<String>() ?? const [];
+            final duration = result['estimate'] as int?;
+            final energy = result['energy'] as TaskEnergy?;
+            final dueDate = result['dueDate'] as DateTime?;
+
+            context.read<TasksBloc>().add(
+              AddTask(
+                Task(
+                  id: id,
+                  title: title,
+                  checklist: steps,
+                  durationMinutes: duration,
+                  energy: energy,
+                  dueDate: dueDate,
                 ),
               ),
-            ],
-          ),
-        ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () async {
-            final result = await Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (_) => const AddTaskPage()));
-
-            if (!context.mounted) return;
-
-            if (result is Map) {
-              final id = DateTime.now().millisecondsSinceEpoch.toString();
-              final title = (result['title'] as String?) ?? 'Nova tarefa';
-              final steps =
-                  (result['steps'] as List?)?.cast<String>() ?? const [];
-              final duration = result['estimate'] as int?;
-              final energy = result['energy'] as TaskEnergy?;
-
-              context.read<TasksBloc>().add(
-                AddTask(
-                  Task(
-                    id: id,
-                    title: title,
-                    checklist: steps,
-                    durationMinutes: duration,
-                    energy: energy,
-                  ),
-                ),
-              );
-            }
-          },
-          label: const Text('Nova Tarefa'),
-          icon: const Icon(Icons.add_rounded),
-          backgroundColor: Brand.primary,
-        ),
+            );
+          }
+        },
+        label: const Text('Nova Tarefa'),
+        icon: const Icon(Icons.add_rounded),
+        backgroundColor: Brand.primary,
       ),
     );
   }
@@ -471,7 +505,7 @@ class _ViewToggleButton extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            color: isSelected ? Brand.textMain : Brand.textSecondary,
+            color: isSelected ? Brand.primary : Brand.textSecondary,
           ),
         ),
       ),
@@ -632,11 +666,7 @@ class _TaskCard extends StatelessWidget {
                   ),
                 ),
 
-                IconButton(
-                  icon: const Icon(Icons.more_vert),
-                  color: Brand.textLight,
-                  onPressed: () {},
-                ),
+                _TaskOptionsButton(task: task),
               ],
             ),
           ),
@@ -922,16 +952,92 @@ class TaskCard extends StatelessWidget {
                 ],
               ),
             ),
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.more_vert),
-              color: Brand.textLight,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-            ),
+            _TaskOptionsButton(task: task),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _TaskOptionsButton extends StatelessWidget {
+  final Task task;
+
+  const _TaskOptionsButton({required this.task});
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.more_vert, color: Brand.textLight),
+      onSelected: (value) async {
+        if (value == 'edit') {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => EditTaskPage(task: task)),
+          );
+
+          if (result != null && context.mounted) {
+            final updatedTask = task.copyWith(
+              title: result['title'],
+              checklist: (result['steps'] as List?)?.cast<String>() ?? [],
+              durationMinutes: result['estimate'],
+              energy: result['energy'],
+              dueDate: result['dueDate'],
+            );
+            context.read<TasksBloc>().add(UpdateTask(updatedTask));
+          }
+        } else if (value == 'delete') {
+          final confirm = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Excluir tarefa?'),
+              content: const Text('Essa ação não pode ser desfeita.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text(
+                    'Cancelar',
+                    style: TextStyle(color: Brand.textSecondary),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: const Text(
+                    'Excluir',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+              ],
+            ),
+          );
+
+          if (confirm == true && context.mounted) {
+            context.read<TasksBloc>().add(DeleteTask(task.id));
+          }
+        }
+      },
+      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+        const PopupMenuItem<String>(
+          value: 'edit',
+          child: Row(
+            children: [
+              Icon(Icons.edit, size: 20, color: Brand.textSecondary),
+              SizedBox(width: 12),
+              Text('Editar'),
+            ],
+          ),
+        ),
+        const PopupMenuItem<String>(
+          value: 'delete',
+          child: Row(
+            children: [
+              Icon(Icons.delete_outline, size: 20, color: Colors.red),
+              SizedBox(width: 12),
+              Text('Excluir', style: TextStyle(color: Colors.red)),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
