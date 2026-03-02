@@ -19,7 +19,11 @@ class SuccessPage extends StatelessWidget {
                 CircleAvatar(
                   radius: 40,
                   backgroundColor: Brand.success,
-                  child: const Icon(Icons.check, color: Colors.white, size: 40),
+                  child: const Icon(
+                    Icons.check,
+                    color: Brand.textWhite,
+                    size: 40,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Text('Ótimo trabalho.', style: theme.textTheme.headlineSmall),

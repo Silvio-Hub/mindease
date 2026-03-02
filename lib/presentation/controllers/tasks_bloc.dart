@@ -11,6 +11,11 @@ class AddTask extends TasksEvent {
   AddTask(this.task);
 }
 
+class UpdateTask extends TasksEvent {
+  final Task task;
+  UpdateTask(this.task);
+}
+
 class DeleteTask extends TasksEvent {
   final String id;
   DeleteTask(this.id);
@@ -34,6 +39,7 @@ class TasksBloc extends Bloc<TasksEvent, TasksState> {
   TasksBloc(this.repo) : super(const TasksState(tasks: [])) {
     on<LoadTasks>(_onLoad);
     on<AddTask>(_onAdd);
+    on<UpdateTask>(_onUpdate);
     on<DeleteTask>(_onDelete);
     on<MoveTask>(_onMove);
   }
@@ -45,6 +51,11 @@ class TasksBloc extends Bloc<TasksEvent, TasksState> {
   }
 
   Future<void> _onAdd(AddTask event, Emitter<TasksState> emit) async {
+    await repo.save(event.task);
+    add(LoadTasks());
+  }
+
+  Future<void> _onUpdate(UpdateTask event, Emitter<TasksState> emit) async {
     await repo.save(event.task);
     add(LoadTasks());
   }

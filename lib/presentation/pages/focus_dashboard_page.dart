@@ -1,65 +1,251 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mindease/core/constants/brand.dart';
-import 'package:mindease/presentation/controllers/accessibility_cubit.dart';
-import 'focus_session_page.dart';
+import 'package:mindease/domain/entities/task.dart';
+import 'package:mindease/presentation/pages/edit_task_page.dart';
+import 'package:mindease/presentation/pages/focus_session_page.dart';
 
-class FocusDashboardPage extends StatelessWidget {
-  const FocusDashboardPage({super.key});
+class FocusDashboardPage extends StatefulWidget {
+  final VoidCallback? onSeeAllTasks;
+
+  const FocusDashboardPage({super.key, this.onSeeAllTasks});
+
+  @override
+  State<FocusDashboardPage> createState() => _FocusDashboardPageState();
+}
+
+class _FocusDashboardPageState extends State<FocusDashboardPage> {
+  Task? currentFocusTask = const Task(
+    id: 'focus-1',
+    title: 'Preparar apresentação de vendas',
+    durationMinutes: 45,
+    energy: TaskEnergy.high,
+  );
+
+  List<Task> tasks = [
+    const Task(
+      id: '1',
+      title: 'Revisar e-mails',
+      durationMinutes: 15,
+      energy: TaskEnergy.high,
+    ),
+    const Task(
+      id: '2',
+      title: 'Pausa para café',
+      durationMinutes: 15,
+      energy: TaskEnergy.low,
+    ),
+  ];
+
+  void _promoteTaskToFocus(Task task) {
+    setState(() {
+      if (currentFocusTask != null) {
+        tasks.insert(0, currentFocusTask!);
+      }
+
+      tasks.removeWhere((t) => t.id == task.id);
+
+      currentFocusTask = task;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Agora focando em: ${task.title}'),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _onEditFocusTask() async {
+    if (currentFocusTask == null) return;
+
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EditTaskPage(initialTitle: currentFocusTask!.title),
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (result != null && result is Map) {
+      setState(() {
+        currentFocusTask = currentFocusTask!.copyWith(title: result['title']);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tarefa em foco atualizada!')),
+      );
+    }
+  }
+
+  void _onDeleteFocusTask() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Excluir tarefa em foco'),
+        content: const Text('Tem certeza que deseja excluir esta tarefa?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                currentFocusTask = null;
+              });
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Tarefa em foco excluída!')),
+              );
+            },
+            child: const Text('Excluir', style: TextStyle(color: Brand.error)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _onAddNewFocusTask() {
+    setState(() {
+      currentFocusTask = const Task(
+        id: 'new-focus',
+        title: 'Nova Tarefa',
+        durationMinutes: 30,
+        energy: TaskEnergy.medium,
+      );
+    });
+  }
+
+  void _onEditTaskInList(Task task) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => EditTaskPage(initialTitle: task.title)),
+    );
+
+    if (!mounted) return;
+
+    if (result != null && result is Map) {
+      setState(() {
+        final index = tasks.indexWhere((t) => t.id == task.id);
+        if (index != -1) {
+          tasks[index] = tasks[index].copyWith(title: result['title']);
+        }
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tarefa atualizada com sucesso!')),
+      );
+    }
+  }
+
+  void _onDeleteTaskInList(Task task) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Excluir tarefa'),
+        content: const Text('Tem certeza que deseja excluir esta tarefa?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                tasks.removeWhere((t) => t.id == task.id);
+              });
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Tarefa excluída com sucesso!')),
+              );
+            },
+            child: const Text('Excluir', style: TextStyle(color: Brand.error)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _onStartFocusSession() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const FocusSessionPage()));
+  }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Brand.neutralBg,
+      backgroundColor: Brand.background,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const _Header(),
+              const SizedBox(height: 24),
+
+              _FocusCard(
+                task: currentFocusTask,
+                onEdit: _onEditFocusTask,
+                onDelete: _onDeleteFocusTask,
+                onStart: _onStartFocusSession,
+                onAdd: _onAddNewFocusTask,
+              ),
+              const SizedBox(height: 32),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Painel de Controle',
-                        style: theme.textTheme.headlineSmall,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Bom dia, Alex. Vamos focar?',
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                    ],
+                  const Text(
+                    'Próximas Tarefas',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Brand.textMain,
+                    ),
                   ),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.notifications),
+                  TextButton(
+                    onPressed: widget.onSeeAllTasks,
+                    child: const Text(
+                      'Ver todas',
+                      style: TextStyle(
+                        color: Brand.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              _FocusCard(),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Próximas Tarefas', style: theme.textTheme.titleMedium),
-                  TextButton(onPressed: () {}, child: const Text('Ver tudo')),
-                ],
-              ),
-              const SizedBox(height: 8),
-              _TaskPreview(
-                title: 'Revisar feedbacks',
-                subtitle: '10:30 • 10 min',
-              ),
-              _TaskPreview(
-                title: 'Sincronização semanal',
-                subtitle: '11:00 • 30 min',
-              ),
+              const SizedBox(height: 12),
+
+              if (tasks.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: Center(
+                    child: Text(
+                      'Nenhuma tarefa pendente.',
+                      style: TextStyle(color: Brand.textSecondary),
+                    ),
+                  ),
+                )
+              else
+                ...tasks.map(
+                  (task) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12.0),
+                    child: _TaskItem(
+                      task: task,
+                      onEdit: () => _onEditTaskInList(task),
+                      onDelete: () => _onDeleteTaskInList(task),
+                      onStartFocus: () => _promoteTaskToFocus(task),
+                    ),
+                  ),
+                ),
+
+              const SizedBox(height: 32),
+
+              const _WellBeingTip(),
+              const SizedBox(height: 80),
             ],
           ),
         ),
@@ -68,93 +254,467 @@ class FocusDashboardPage extends StatelessWidget {
   }
 }
 
-class _FocusCard extends StatelessWidget {
+class _Header extends StatelessWidget {
+  const _Header();
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return BlocBuilder<AccessibilityCubit, AccessibilityState>(
-      builder: (ctx, state) {
-        return Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Olá, como você está hoje?',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Brand.textMain,
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Tarefa em Foco',
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: Brand.primary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Concluir Relatório do Projeto',
-                  style: theme.textTheme.titleLarge,
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(Icons.schedule, size: 16),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Estimativa: 25 min',
-                      style: theme.textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const FocusSessionPage(),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Brand.primary,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size.fromHeight(48),
-                  ),
-                  icon: const Icon(Icons.play_arrow),
-                  label: const Text('Iniciar Foco'),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Aqui está o seu foco para este momento.',
+          style: TextStyle(fontSize: 16, color: Brand.textSecondary),
+        ),
+      ],
     );
   }
 }
 
-class _TaskPreview extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  const _TaskPreview({required this.title, required this.subtitle});
+class _FocusCard extends StatelessWidget {
+  final Task? task;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  final VoidCallback onStart;
+  final VoidCallback onAdd;
+
+  const _FocusCard({
+    required this.task,
+    required this.onEdit,
+    required this.onDelete,
+    required this.onStart,
+    required this.onAdd,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: ListTile(
-        leading: const Icon(Icons.check_box_outline_blank),
-        title: Text(title, style: theme.textTheme.bodyLarge),
-        subtitle: Text(subtitle),
-        trailing: const Icon(Icons.chevron_right),
+    if (task == null) {
+      return Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Brand.surface,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Brand.border),
+        ),
+        child: Column(
+          children: [
+            const Icon(
+              Icons.check_circle_outline,
+              size: 48,
+              color: Brand.textSecondary,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Você não tem nenhuma tarefa em foco no momento.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Brand.textSecondary),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: onAdd,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Brand.primary,
+                foregroundColor: Brand.textWhite,
+              ),
+              child: const Text('Adicionar tarefa'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Brand.surface,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Brand.textMain.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            color: Brand.secondary,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Brand.surface.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.adjust_rounded,
+                    color: Brand.textWhite,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  'EM FOCO AGORA',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Brand.textWhite,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  task!.title,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Brand.textMain,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'De acordo com o seu painel cognitivo, esta é a tarefa que mais merece sua atenção agora.',
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Brand.textSecondary,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: onStart,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Brand.secondary,
+                          foregroundColor: Brand.textWhite,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        icon: const Icon(Icons.play_arrow_rounded, size: 24),
+                        label: const Text(
+                          'Iniciar foco',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Brand.border),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: PopupMenuButton<String>(
+                        icon: Icon(
+                          Icons.more_horiz,
+                          color: Brand.textSecondary,
+                        ),
+                        tooltip: 'Mais opções',
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        onSelected: (value) {
+                          if (value == 'edit') {
+                            onEdit();
+                          } else if (value == 'delete') {
+                            onDelete();
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: 'edit',
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.edit_outlined,
+                                  size: 20,
+                                  color: Brand.textSecondary,
+                                ),
+                                SizedBox(width: 12),
+                                Text('Editar detalhes'),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.delete_outline,
+                                  size: 20,
+                                  color: Brand.error,
+                                ),
+                                SizedBox(width: 12),
+                                Text(
+                                  'Excluir tarefa',
+                                  style: TextStyle(color: Brand.error),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TaskItem extends StatelessWidget {
+  final Task task;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  final VoidCallback onStartFocus;
+
+  const _TaskItem({
+    required this.task,
+    required this.onEdit,
+    required this.onDelete,
+    required this.onStartFocus,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isHigh = task.energy == TaskEnergy.high;
+    final energyColor = isHigh ? Brand.energyHighBg : Brand.energyLowBg;
+    final energyTextColor = isHigh ? Brand.energyHighText : Brand.energyLowText;
+    final energyLabel = isHigh ? 'Energia: Alta' : 'Energia: Baixa';
+    final duration = '${task.durationMinutes ?? 0}m';
+
+    return GestureDetector(
+      onTap: onStartFocus,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Brand.surface,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Brand.textMain.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                border: Border.all(color: Brand.textLight, width: 2),
+                borderRadius: BorderRadius.circular(6),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    task.title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Brand.textMain,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.timer_outlined,
+                        size: 16,
+                        color: Brand.textSecondary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        duration,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Brand.textSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: energyColor,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.bolt, size: 14, color: energyTextColor),
+                            const SizedBox(width: 4),
+                            Text(
+                              energyLabel,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: energyTextColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.arrow_upward, size: 20),
+              color: Brand.primary,
+              tooltip: 'Promover para Foco',
+              onPressed: onStartFocus,
+            ),
+            PopupMenuButton<String>(
+              icon: Icon(Icons.more_vert, color: Brand.textLight),
+              tooltip: 'Mais opções',
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              onSelected: (value) {
+                if (value == 'edit') {
+                  onEdit();
+                } else if (value == 'start') {
+                  onStartFocus();
+                } else if (value == 'delete') {
+                  onDelete();
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'edit',
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.edit_outlined,
+                        size: 20,
+                        color: Brand.textSecondary,
+                      ),
+                      SizedBox(width: 12),
+                      Text('Editar detalhes'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'start',
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.play_arrow_outlined,
+                        size: 20,
+                        color: Brand.textSecondary,
+                      ),
+                      SizedBox(width: 12),
+                      Text('Iniciar foco'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete_outline, size: 20, color: Brand.error),
+                      SizedBox(width: 12),
+                      Text(
+                        'Excluir tarefa',
+                        style: TextStyle(color: Brand.error),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _WellBeingTip extends StatelessWidget {
+  const _WellBeingTip();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Brand.tipBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Brand.tipBorder),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.lightbulb_outline, color: Brand.secondary, size: 28),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Dica de Bem-estar',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Brand.secondary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Lembre-se de beber água entre os blocos de foco. Pequenas pausas ajudam seu cérebro a processar informações e evitam o esgotamento.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Brand.textSecondary,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

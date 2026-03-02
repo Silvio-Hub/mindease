@@ -27,7 +27,6 @@ class PomodoroTimer extends StatelessWidget {
               Text(
                 state.isWorkPhase ? 'Foco' : 'Pausa',
                 textAlign: TextAlign.center,
-                // [A11Y-Cog] Copy curto e claro reforça previsibilidade
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 8),

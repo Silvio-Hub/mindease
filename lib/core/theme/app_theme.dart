@@ -15,7 +15,6 @@ ThemeData lightTheme({
     colorScheme: colorScheme,
     visualDensity: VisualDensity.adaptivePlatformDensity,
     textTheme: base.textTheme.apply(fontSizeFactor: fontScale),
-    // [A11Y-Cog] Ritmo de navegação controlado: transições removíveis
     pageTransitionsTheme: PageTransitionsTheme(
       builders: {
         TargetPlatform.android: animationsEnabled
@@ -39,7 +38,6 @@ class NoTransitionsBuilder extends PageTransitionsBuilder {
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
-    // [A11Y-Cog] Sem animação para reduzir estímulos visuais
     return child;
   }
 }

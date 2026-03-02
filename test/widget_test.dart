@@ -11,17 +11,23 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:mocktail/mocktail.dart';
 
+import 'package:mindease/domain/repositories/auth_repository.dart';
 import 'package:mindease/main.dart';
 import 'package:mindease/presentation/controllers/accessibility_cubit.dart';
 
 class MockAccessibilityCubit extends MockCubit<AccessibilityState>
     implements AccessibilityCubit {}
 
+class MockAuthRepository extends Mock implements AuthRepository {}
+
 void main() {
   late MockAccessibilityCubit mockAccessibilityCubit;
+  late MockAuthRepository mockAuthRepository;
 
   setUp(() {
     mockAccessibilityCubit = MockAccessibilityCubit();
+    mockAuthRepository = MockAuthRepository();
+
     when(() => mockAccessibilityCubit.state).thenReturn(
       const AccessibilityState(
         focusMode: false,
@@ -34,9 +40,14 @@ void main() {
     );
     when(() => mockAccessibilityCubit.init()).thenAnswer((_) async {});
 
+    when(
+      () => mockAuthRepository.getCurrentUser(),
+    ).thenAnswer((_) async => null);
+
     GetIt.instance.registerSingleton<AccessibilityCubit>(
       mockAccessibilityCubit,
     );
+    GetIt.instance.registerSingleton<AuthRepository>(mockAuthRepository);
   });
 
   tearDown(() {

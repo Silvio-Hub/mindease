@@ -1,8 +1,8 @@
 class UserPreferences {
   final bool focusMode;
   final bool highContrast;
-  final double fontScale; // 1.0–1.6
-  final double spacingScale; // 1.0–1.6
+  final double fontScale;
+  final double spacingScale;
   final bool summaryMode;
   final bool animationsEnabled;
 

@@ -9,7 +9,7 @@ class FocusPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F4FF),
+      backgroundColor: Brand.backgroundFocus,
       appBar: AppBar(title: const Text('Foco')),
       body: SafeArea(
         child: Center(
@@ -73,7 +73,7 @@ class FocusPage extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         backgroundColor: Brand.primary,
         onPressed: () {},
-        child: const Icon(Icons.add, color: Colors.white),
+        child: const Icon(Icons.add, color: Brand.textWhite),
       ),
     );
   }
