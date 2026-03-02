@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mindease/app/di/injector.dart';
+import 'package:mindease/core/constants/brand.dart';
 import 'package:mindease/domain/entities/task.dart';
 import 'package:mindease/presentation/controllers/tasks_bloc.dart';
 import 'package:mindease/presentation/pages/add_task_page.dart';
@@ -62,9 +63,10 @@ class _TasksPageState extends State<TasksPage>
     return BlocProvider(
       create: (_) => sl<TasksBloc>()..add(LoadTasks()),
       child: Scaffold(
-        backgroundColor: const Color(0xFFF5F7FB),
+        backgroundColor: Brand.backgroundAlt,
         body: SafeArea(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header
               Padding(
@@ -80,7 +82,7 @@ class _TasksPageState extends State<TasksPage>
                             title,
                             style: theme.textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF1E1E2D),
+                              color: Brand.textMain,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -146,7 +148,7 @@ class _TasksPageState extends State<TasksPage>
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF4F46E5)),
+                      borderSide: const BorderSide(color: Brand.primary),
                     ),
                   ),
                 ),
@@ -197,9 +199,9 @@ class _TasksPageState extends State<TasksPage>
                             controller: _tabController,
                             isScrollable: true,
                             tabAlignment: TabAlignment.start,
-                            labelColor: const Color(0xFF4F46E5),
+                            labelColor: Brand.primary,
                             unselectedLabelColor: Colors.grey,
-                            indicatorColor: const Color(0xFF4F46E5),
+                            indicatorColor: Brand.primary,
                             indicatorSize: TabBarIndicatorSize.label,
                             dividerColor: Colors.transparent,
                             padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -260,7 +262,7 @@ class _TasksPageState extends State<TasksPage>
                             Icon(
                               Icons.spa,
                               size: 64,
-                              color: Colors.indigo[100],
+                              color: Brand.primary.withValues(alpha: 0.2),
                             ),
                             const SizedBox(height: 16),
                             const Text(
@@ -268,7 +270,7 @@ class _TasksPageState extends State<TasksPage>
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E1E2D),
+                                color: Brand.textMain,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -366,21 +368,17 @@ class _TasksPageState extends State<TasksPage>
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: const Color(
-                              0xFF4F46E5,
-                            ).withValues(alpha: 0.1),
+                            color: Brand.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: const Color(
-                                0xFF4F46E5,
-                              ).withValues(alpha: 0.2),
+                              color: Brand.primary.withValues(alpha: 0.2),
                             ),
                           ),
                           child: Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.info_outline,
-                                color: const Color(0xFF4F46E5),
+                                color: Brand.primary,
                                 size: 24,
                               ),
                               const SizedBox(width: 12),
@@ -388,7 +386,7 @@ class _TasksPageState extends State<TasksPage>
                                 child: Text(
                                   'As tarefas seguem a ordem de execução definida. Use os indicadores de energia para escolher a melhor tarefa.',
                                   style: TextStyle(
-                                    color: const Color(0xFF4F46E5),
+                                    color: Brand.primary,
                                     fontSize: 13,
                                     height: 1.4,
                                   ),
@@ -437,7 +435,7 @@ class _TasksPageState extends State<TasksPage>
           },
           label: const Text('Nova Tarefa'),
           icon: const Icon(Icons.add_rounded),
-          backgroundColor: const Color(0xFF4F46E5),
+          backgroundColor: Brand.primary,
         ),
       ),
     );
@@ -500,18 +498,18 @@ class _TaskCard extends StatelessWidget {
 
     switch (task.energy) {
       case TaskEnergy.high:
-        energyColor = const Color(0xFFE11D48);
-        energyBgColor = const Color(0xFFFFE4E6);
+        energyColor = Brand.energyHighText;
+        energyBgColor = Brand.energyHighBg;
         energyLabel = 'Energia: Alta';
         break;
       case TaskEnergy.medium:
-        energyColor = const Color(0xFFD97706);
-        energyBgColor = const Color(0xFFFEF3C7);
+        energyColor = Brand.energyMediumText;
+        energyBgColor = Brand.energyMediumBg;
         energyLabel = 'Energia: Média';
         break;
       case TaskEnergy.low:
-        energyColor = const Color(0xFF2563EB);
-        energyBgColor = const Color(0xFFDBEAFE);
+        energyColor = Brand.energyLowText;
+        energyBgColor = Brand.energyLowBg;
         energyLabel = 'Energia: Baixa';
         break;
       default:
@@ -553,14 +551,10 @@ class _TaskCard extends StatelessWidget {
                   width: 24,
                   height: 24,
                   decoration: BoxDecoration(
-                    color: task.done
-                        ? const Color(0xFF4F46E5)
-                        : Colors.transparent,
+                    color: task.done ? Brand.primary : Colors.transparent,
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(
-                      color: task.done
-                          ? const Color(0xFF4F46E5)
-                          : Colors.grey[400]!,
+                      color: task.done ? Brand.primary : Colors.grey[400]!,
                       width: 2,
                     ),
                   ),
@@ -580,9 +574,7 @@ class _TaskCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: task.done
-                              ? Colors.grey[400]
-                              : const Color(0xFF1E1E2D),
+                          color: task.done ? Colors.grey[400] : Brand.textMain,
                           decoration: task.done
                               ? TextDecoration.lineThrough
                               : null,
@@ -683,15 +675,15 @@ class _DateFilterChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF4F46E5) : Colors.white,
+          color: isSelected ? Brand.primary : Colors.white,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isSelected ? const Color(0xFF4F46E5) : Colors.grey.shade200,
+            color: isSelected ? Brand.primary : Colors.grey.shade200,
           ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: const Color(0xFF4F46E5).withValues(alpha: 0.3),
+                    color: Brand.primary.withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),

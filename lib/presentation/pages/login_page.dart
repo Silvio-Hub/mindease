@@ -86,7 +86,7 @@ class _LoginViewState extends State<_LoginView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB), // Light grey/white background
+      backgroundColor: Brand.backgroundAlt, // Light grey/white background
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -368,10 +368,9 @@ class _LoginViewState extends State<_LoginView> {
                                       ? _onLoginPressed
                                       : null,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF4F46E5),
-                                    disabledBackgroundColor: const Color(
-                                      0xFF4F46E5,
-                                    ).withValues(alpha: 0.5),
+                                    backgroundColor: Brand.primary,
+                                    disabledBackgroundColor: Brand.primary
+                                        .withValues(alpha: 0.5),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
@@ -420,7 +419,7 @@ class _LoginViewState extends State<_LoginView> {
                                         .textTheme
                                         .bodyMedium
                                         ?.copyWith(
-                                          color: const Color(0xFF5E548E),
+                                          color: Brand.tertiary,
                                           fontWeight: FontWeight.bold,
                                           decoration: TextDecoration.underline,
                                         ),

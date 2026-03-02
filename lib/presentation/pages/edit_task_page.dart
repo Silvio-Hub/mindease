@@ -3,23 +3,35 @@ import 'package:intl/intl.dart';
 import 'package:mindease/core/constants/brand.dart';
 import 'package:mindease/domain/entities/task.dart';
 
-class AddTaskPage extends StatefulWidget {
-  const AddTaskPage({super.key});
+class EditTaskPage extends StatefulWidget {
+  final String initialTitle;
+
+  const EditTaskPage({super.key, required this.initialTitle});
 
   @override
-  State<AddTaskPage> createState() => _AddTaskPageState();
+  State<EditTaskPage> createState() => _EditTaskPageState();
 }
 
-class _AddTaskPageState extends State<AddTaskPage> {
-  final _titleCtrl = TextEditingController();
+class _EditTaskPageState extends State<EditTaskPage> {
+  late final TextEditingController _titleCtrl;
   final _stepCtrls = List.generate(3, (_) => TextEditingController());
 
-  int _estimateMinutes = 30; // Default: 30m
-  TaskEnergy _energy = TaskEnergy.medium; // Default: Média
+  int _estimateMinutes = 45; // Default for edit mockup: 45m
+  TaskEnergy _energy = TaskEnergy.high; // Default for edit mockup: Alta
 
   // 0: Hoje, 1: Amanhã, 2: Outra data
-  int _dateOption = 1; // Default: Amanhã
-  DateTime? _selectedCustomDate;
+  int _dateOption = 2; // Default for edit mockup: Outra data
+  DateTime? _selectedCustomDate = DateTime(2024, 10, 27); // Default: 27/10/2024
+
+  @override
+  void initState() {
+    super.initState();
+    _titleCtrl = TextEditingController(text: widget.initialTitle);
+
+    // Pre-fill mock data for steps
+    _stepCtrls[0].text = "Revisar anotações da aula";
+    _stepCtrls[1].text = "Criar slides";
+  }
 
   @override
   void dispose() {
@@ -95,48 +107,43 @@ class _AddTaskPageState extends State<AddTaskPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back_rounded, color: Colors.grey),
+        ),
+        title: Column(
+          children: [
+            const Text(
+              'Editar tarefa',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Brand.textMain,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Ajuste o que for necessário.',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
+        centerTitle: true,
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
-              Stack(
-                alignment: Alignment.centerLeft,
-                children: [
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back_rounded),
-                    padding: EdgeInsets.zero,
-                    alignment: Alignment.centerLeft,
-                    color: Colors.grey[600],
-                  ),
-                  Center(
-                    child: Column(
-                      children: [
-                        const Text(
-                          'Criar nova tarefa',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Brand.textMain,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Dê um passo de cada vez.',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
 
               // Title Input
               _buildSectionLabel('O que você quer realizar?'),
@@ -404,7 +411,7 @@ class _AddTaskPageState extends State<AddTaskPage> {
                   ),
                   icon: const Icon(Icons.check_circle_outline, size: 20),
                   label: const Text(
-                    'Salvar tarefa',
+                    'Salvar alterações',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),

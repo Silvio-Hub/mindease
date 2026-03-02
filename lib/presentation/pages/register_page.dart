@@ -97,9 +97,8 @@ class _RegisterViewState extends State<_RegisterView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(
-        0xFFE8ECEF,
-      ), // Greyish background like the image
+      backgroundColor:
+          Brand.backgroundGrey, // Greyish background like the image
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -449,10 +448,9 @@ class _RegisterViewState extends State<_RegisterView> {
                                       ? _onRegisterPressed
                                       : null,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF4F46E5),
-                                    disabledBackgroundColor: const Color(
-                                      0xFF4F46E5,
-                                    ).withValues(alpha: 0.5),
+                                    backgroundColor: Brand.primary,
+                                    disabledBackgroundColor: Brand.primary
+                                        .withValues(alpha: 0.5),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
@@ -501,7 +499,7 @@ class _RegisterViewState extends State<_RegisterView> {
                                         .textTheme
                                         .bodyMedium
                                         ?.copyWith(
-                                          color: const Color(0xFF5E548E),
+                                          color: Brand.tertiary,
                                           fontWeight: FontWeight.bold,
                                           decoration: TextDecoration.underline,
                                         ),
