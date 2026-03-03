@@ -3,14 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mindease/presentation/controllers/pomodoro_cubit.dart';
 
 class PomodoroTimer extends StatelessWidget {
-  final Duration work;
-  final Duration rest;
-  const PomodoroTimer({super.key, required this.work, required this.rest});
+  final int focusMinutes;
+  const PomodoroTimer({super.key, required this.focusMinutes});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => PomodoroCubit(work: work, rest: rest),
+      create: (_) => PomodoroCubit(focusMinutes: focusMinutes),
       child: BlocBuilder<PomodoroCubit, PomodoroState>(
         builder: (ctx, state) {
           final minutes = state.remaining.inMinutes

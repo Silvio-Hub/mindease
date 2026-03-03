@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mindease/core/constants/brand.dart';
 import 'package:mindease/domain/entities/task.dart';
+import 'package:mindease/domain/entities/user_preferences.dart';
+import 'package:mindease/presentation/controllers/accessibility_cubit.dart';
 import 'package:mindease/presentation/controllers/tasks_bloc.dart';
 import 'package:mindease/presentation/pages/add_task_page.dart';
 import 'package:mindease/presentation/pages/edit_task_page.dart';
@@ -194,16 +196,59 @@ class _FocusDashboardPageState extends State<FocusDashboardPage> {
     ).push(MaterialPageRoute(builder: (_) => FocusSessionPage(task: task)));
   }
 
+  int _getEnergyScore(TaskEnergy? taskEnergy, TaskEnergy userEnergy) {
+    if (taskEnergy == null) return 3;
+
+    if (taskEnergy == userEnergy) return 0;
+
+    if (userEnergy == TaskEnergy.low) {
+      if (taskEnergy == TaskEnergy.medium) return 1;
+      if (taskEnergy == TaskEnergy.high) return 2;
+    }
+
+    if (userEnergy == TaskEnergy.medium) {
+      if (taskEnergy == TaskEnergy.low) return 1;
+      if (taskEnergy == TaskEnergy.high) return 2;
+    }
+
+    if (userEnergy == TaskEnergy.high) {
+      if (taskEnergy == TaskEnergy.medium) return 1;
+      if (taskEnergy == TaskEnergy.low) return 2;
+    }
+
+    return 3;
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<TasksBloc, TasksState>(
       builder: (context, state) {
-        final allTasks = state.tasks;
+        final accessibilityState = context.watch<AccessibilityCubit>().state;
+        final energyLevel = accessibilityState.energyLevel;
+        final infoDensity =
+            accessibilityState.infoDensity ?? InfoDensity.equilibrada;
+        var allTasks = List<Task>.from(state.tasks);
+
+        allTasks.sort((a, b) {
+          if (energyLevel != null) {
+            final scoreA = _getEnergyScore(a.energy, energyLevel);
+            final scoreB = _getEnergyScore(b.energy, energyLevel);
+            final energyComparison = scoreA.compareTo(scoreB);
+            if (energyComparison != 0) return energyComparison;
+          }
+
+          if (a.dueDate == null && b.dueDate == null) return 0;
+          if (a.dueDate == null) return 1;
+          if (b.dueDate == null) return -1;
+          return a.dueDate!.compareTo(b.dueDate!);
+        });
+
         final currentFocusTask = _getTask(allTasks);
 
         // Filter out the focus task from the list below and only show pending/in-progress
         final otherTasks = allTasks
             .where((t) => t.id != currentFocusTask?.id && !t.done)
+            .take(2)
             .toList();
 
         return Scaffold(
@@ -226,6 +271,7 @@ class _FocusDashboardPageState extends State<FocusDashboardPage> {
                     onDelete: () => _onDeleteFocusTask(currentFocusTask!),
                     onStart: () => _onStartFocusSession(currentFocusTask!),
                     onAdd: _onAddNewFocusTask,
+                    density: infoDensity,
                   ),
                   const SizedBox(height: 32),
 
@@ -273,6 +319,7 @@ class _FocusDashboardPageState extends State<FocusDashboardPage> {
                           onEdit: () => _onEditTaskInList(task),
                           onDelete: () => _onDeleteTaskInList(task),
                           onStartFocus: () => _promoteTaskToFocus(task),
+                          density: infoDensity,
                         ),
                       ),
                     ),
@@ -333,6 +380,7 @@ class _FocusCard extends StatelessWidget {
   final VoidCallback onDelete;
   final VoidCallback onStart;
   final VoidCallback onAdd;
+  final InfoDensity density;
 
   const _FocusCard({
     required this.task,
@@ -340,6 +388,7 @@ class _FocusCard extends StatelessWidget {
     required this.onDelete,
     required this.onStart,
     required this.onAdd,
+    required this.density,
   });
 
   @override
@@ -406,36 +455,37 @@ class _FocusCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            color: Brand.secondary,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Brand.surface.withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
+          if (density != InfoDensity.simples)
+            Container(
+              color: Brand.secondary,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Brand.surface.withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.adjust_rounded,
+                      color: Brand.textWhite,
+                      size: 20,
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.adjust_rounded,
-                    color: Brand.textWhite,
-                    size: 20,
+                  const SizedBox(width: 12),
+                  const Text(
+                    'EM FOCO AGORA',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Brand.textWhite,
+                      letterSpacing: 1.2,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                const Text(
-                  'EM FOCO AGORA',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Brand.textWhite,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
           Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -450,15 +500,61 @@ class _FocusCard extends StatelessWidget {
                     height: 1.2,
                   ),
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  'De acordo com o seu painel cognitivo, esta é a tarefa que mais merece sua atenção agora.',
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Brand.textSecondary,
-                    height: 1.5,
+                if (density != InfoDensity.simples) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    'De acordo com o seu painel cognitivo, esta é a tarefa que mais merece sua atenção agora.',
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Brand.textSecondary,
+                      height: 1.5,
+                    ),
                   ),
-                ),
+                ],
+                if (density == InfoDensity.detalhada &&
+                    task!.checklist.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  ...task!.checklist
+                      .take(3)
+                      .map(
+                        (step) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.check_circle_outline,
+                                size: 16,
+                                color: Brand.textSecondary,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  step,
+                                  style: const TextStyle(
+                                    color: Brand.textSecondary,
+                                    fontSize: 14,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  if (task!.checklist.length > 3)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        '+ ${task!.checklist.length - 3} itens',
+                        style: const TextStyle(
+                          color: Brand.primary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                ],
                 const SizedBox(height: 20),
                 Row(
                   children: [
@@ -557,20 +653,40 @@ class _TaskItem extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onStartFocus;
+  final InfoDensity density;
 
   const _TaskItem({
     required this.task,
     required this.onEdit,
     required this.onDelete,
     required this.onStartFocus,
+    required this.density,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isHigh = task.energy == TaskEnergy.high;
-    final energyColor = isHigh ? Brand.energyHighBg : Brand.energyLowBg;
-    final energyTextColor = isHigh ? Brand.energyHighText : Brand.energyLowText;
-    final energyLabel = isHigh ? 'Energia: Alta' : 'Energia: Baixa';
+    Color energyColor;
+    Color energyTextColor;
+    String energyLabel;
+
+    switch (task.energy) {
+      case TaskEnergy.high:
+        energyColor = Brand.energyHighBg;
+        energyTextColor = Brand.energyHighText;
+        energyLabel = 'Energia: Alta';
+        break;
+      case TaskEnergy.medium:
+        energyColor = Brand.energyMediumBg;
+        energyTextColor = Brand.energyMediumText;
+        energyLabel = 'Energia: Média';
+        break;
+      case TaskEnergy.low:
+      default:
+        energyColor = Brand.energyLowBg;
+        energyTextColor = Brand.energyLowText;
+        energyLabel = 'Energia: Baixa';
+        break;
+    }
     final duration = '${task.durationMinutes ?? 0}m';
 
     return GestureDetector(
@@ -611,51 +727,57 @@ class _TaskItem extends StatelessWidget {
                       color: Brand.textMain,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.timer_outlined,
-                        size: 16,
-                        color: Brand.textSecondary,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        duration,
-                        style: TextStyle(
-                          fontSize: 14,
+                  if (density != InfoDensity.simples) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.timer_outlined,
+                          size: 16,
                           color: Brand.textSecondary,
-                          fontWeight: FontWeight.w500,
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+                        const SizedBox(width: 4),
+                        Text(
+                          duration,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Brand.textSecondary,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                        decoration: BoxDecoration(
-                          color: energyColor,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.bolt, size: 14, color: energyTextColor),
-                            const SizedBox(width: 4),
-                            Text(
-                              energyLabel,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
+                        const SizedBox(width: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: energyColor,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.bolt,
+                                size: 14,
                                 color: energyTextColor,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 4),
+                              Text(
+                                energyLabel,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: energyTextColor,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),

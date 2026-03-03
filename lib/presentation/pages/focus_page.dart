@@ -14,10 +14,7 @@ class FocusPage extends StatelessWidget {
       body: SafeArea(
         child: Center(
           child: BlocProvider(
-            create: (_) => PomodoroCubit(
-              work: const Duration(minutes: 25),
-              rest: const Duration(minutes: 5),
-            ),
+            create: (_) => PomodoroCubit(focusMinutes: 25),
             child: BlocBuilder<PomodoroCubit, PomodoroState>(
               builder: (ctx, state) {
                 final minutes = state.remaining.inMinutes

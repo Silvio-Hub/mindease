@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:mindease/domain/entities/task.dart';
 import 'package:mindease/domain/entities/user_preferences.dart';
 import 'package:mindease/domain/usecases/load_preferences.dart';
 import 'package:mindease/domain/usecases/save_preferences.dart';
@@ -12,6 +13,8 @@ class AccessibilityState extends Equatable {
   final double spacingScale;
   final bool summaryMode;
   final bool animationsEnabled;
+  final TaskEnergy? energyLevel;
+  final InfoDensity? infoDensity;
 
   const AccessibilityState({
     required this.focusMode,
@@ -20,6 +23,8 @@ class AccessibilityState extends Equatable {
     required this.spacingScale,
     required this.summaryMode,
     required this.animationsEnabled,
+    this.energyLevel,
+    this.infoDensity,
   });
 
   AccessibilityState copyWith({
@@ -29,6 +34,8 @@ class AccessibilityState extends Equatable {
     double? spacingScale,
     bool? summaryMode,
     bool? animationsEnabled,
+    TaskEnergy? energyLevel,
+    InfoDensity? infoDensity,
   }) {
     return AccessibilityState(
       focusMode: focusMode ?? this.focusMode,
@@ -37,6 +44,8 @@ class AccessibilityState extends Equatable {
       spacingScale: spacingScale ?? this.spacingScale,
       summaryMode: summaryMode ?? this.summaryMode,
       animationsEnabled: animationsEnabled ?? this.animationsEnabled,
+      energyLevel: energyLevel ?? this.energyLevel,
+      infoDensity: infoDensity ?? this.infoDensity,
     );
   }
 
@@ -48,6 +57,8 @@ class AccessibilityState extends Equatable {
     spacingScale,
     summaryMode,
     animationsEnabled,
+    energyLevel,
+    infoDensity,
   ];
 }
 
@@ -81,6 +92,8 @@ class AccessibilityCubit extends Cubit<AccessibilityState> {
         spacingScale: prefs.spacingScale,
         summaryMode: prefs.summaryMode,
         animationsEnabled: prefs.animationsEnabled,
+        energyLevel: prefs.energyLevel,
+        infoDensity: prefs.infoDensity,
       ),
     );
   }
@@ -98,8 +111,57 @@ class AccessibilityCubit extends Cubit<AccessibilityState> {
       spacingScale: state.spacingScale,
       summaryMode: state.summaryMode,
       animationsEnabled: state.animationsEnabled,
+      energyLevel: state.energyLevel,
+      infoDensity: state.infoDensity,
     );
     await savePreferences(updated);
     emit(state.copyWith(focusMode: on));
+  }
+
+  Future<void> setEnergyLevel(TaskEnergy? level) async {
+    final updated = UserPreferences(
+      focusMode: state.focusMode,
+      highContrast: state.highContrast,
+      fontScale: state.fontScale,
+      spacingScale: state.spacingScale,
+      summaryMode: state.summaryMode,
+      animationsEnabled: state.animationsEnabled,
+      energyLevel: level,
+      infoDensity: state.infoDensity,
+    );
+    await savePreferences(updated);
+    emit(state.copyWith(energyLevel: level));
+  }
+
+  Future<void> updateSettings({
+    bool? focusMode,
+    TaskEnergy? energyLevel,
+    InfoDensity? infoDensity,
+  }) async {
+    final nextFocusMode = focusMode ?? state.focusMode;
+    // Note: this logic assumes we don't want to set energyLevel to null explicitly via this method if it was not null.
+    // If energyLevel is passed as null, we keep current.
+    // This is fine for the current use case where we always have a value selected in UI.
+    final nextEnergyLevel = energyLevel ?? state.energyLevel;
+    final nextInfoDensity = infoDensity ?? state.infoDensity;
+
+    final updated = UserPreferences(
+      focusMode: nextFocusMode,
+      highContrast: state.highContrast,
+      fontScale: state.fontScale,
+      spacingScale: state.spacingScale,
+      summaryMode: state.summaryMode,
+      animationsEnabled: state.animationsEnabled,
+      energyLevel: nextEnergyLevel,
+      infoDensity: nextInfoDensity,
+    );
+    await savePreferences(updated);
+    emit(
+      state.copyWith(
+        focusMode: nextFocusMode,
+        energyLevel: nextEnergyLevel,
+        infoDensity: nextInfoDensity,
+      ),
+    );
   }
 }

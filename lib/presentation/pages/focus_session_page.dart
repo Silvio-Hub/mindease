@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:mindease/core/constants/brand.dart';
 import 'package:mindease/domain/entities/task.dart';
 import 'package:mindease/presentation/controllers/pomodoro_cubit.dart';
-import 'package:mindease/presentation/pages/focus_summary_page.dart';
 
 class FocusSessionPage extends StatefulWidget {
   final bool startInRestMode;
@@ -34,18 +34,18 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
       create: (_) {
         final duration = widget.task?.durationMinutes ?? 45;
         return PomodoroCubit(
-          work: Duration(minutes: duration),
-          rest: const Duration(minutes: 5),
+          focusMinutes: duration,
           startInRestMode: widget.startInRestMode,
         );
       },
       child: BlocListener<PomodoroCubit, PomodoroState>(
         listener: (context, state) {
           if (state.status == PomodoroStatus.finishedWork) {
-            final duration = widget.task?.durationMinutes ?? 45;
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (_) => FocusSummaryPage(completedMinutes: duration),
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Foco finalizado! Iniciando intervalo...'),
+                backgroundColor: Brand.primary,
+                behavior: SnackBarBehavior.floating,
               ),
             );
           } else if (state.status == PomodoroStatus.finishedRest) {
@@ -61,10 +61,10 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
         child: BlocBuilder<PomodoroCubit, PomodoroState>(
           builder: (context, state) {
             final isWork = state.isWorkPhase;
-            final primaryColor = isWork ? Brand.primary : Brand.restPrimary;
+            final primaryColor = isWork ? Brand.primary : Brand.success;
             final backgroundColor = isWork
                 ? Brand.background
-                : Brand.restBackground;
+                : Brand.backgroundAlt;
 
             return Scaffold(
               backgroundColor: backgroundColor,
@@ -72,166 +72,326 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            isWork ? Icons.psychology : Icons.coffee_rounded,
-                            color: primaryColor,
-                            size: 28,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            isWork ? 'MindEase Focus' : 'MindEase Intervalo',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: primaryColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      Stack(
-                        children: [
-                          Container(
-                            height: 4,
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: Brand.border,
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                          ),
-                          Container(
-                            height: 4,
-                            width: MediaQuery.of(context).size.width * 0.6,
-                            decoration: BoxDecoration(
-                              color: primaryColor,
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        isWork ? 'CICLO 1 DE 1' : 'INTERVALO',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Brand.textSecondary,
-                          letterSpacing: 1.0,
-                        ),
-                      ),
-
-                      const SizedBox(height: 40),
-
-                      BlocBuilder<PomodoroCubit, PomodoroState>(
-                        builder: (context, state) {
-                          final minutes = state.remaining.inMinutes
-                              .toString()
-                              .padLeft(2, '0');
-                          final seconds = state.remaining.inSeconds
-                              .remainder(60)
-                              .toString()
-                              .padLeft(2, '0');
-
-                          return Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              _TimerCard(
-                                value: minutes,
-                                label: 'MINUTOS',
-                                color: primaryColor,
-                              ),
-                              const SizedBox(width: 16),
-                              _TimerCard(
-                                value: seconds,
-                                label: 'SEGUNDOS',
-                                color: primaryColor,
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-
-                      const SizedBox(height: 32),
-
-                      Text(
-                        widget.task?.title ?? 'Sessão de Foco',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Brand.textMain,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Mantenha o foco. Você está indo bem.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Brand.textSecondary,
-                        ),
-                      ),
-
-                      const SizedBox(height: 32),
-
-                      if (_checklist.isNotEmpty)
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Brand.surface,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          padding: const EdgeInsets.all(8),
+                      Expanded(
+                        child: SingleChildScrollView(
                           child: Column(
-                            children: _checklist.asMap().entries.map((entry) {
-                              final index = entry.key;
-                              final item = entry.value;
-                              return Container(
-                                margin: const EdgeInsets.only(bottom: 8),
-                                decoration: BoxDecoration(
-                                  color: Brand.backgroundAlt,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: CheckboxListTile(
-                                  value: item['done'] as bool,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _checklist[index]['done'] = value!;
-                                    });
-                                  },
-                                  title: Text(
-                                    item['title'] as String,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Brand.textMain,
-                                      decoration: (item['done'] as bool)
-                                          ? TextDecoration.lineThrough
-                                          : null,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              const SizedBox(height: 8),
+                              Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: IconButton(
+                                      icon: Icon(
+                                        Icons.arrow_back_ios_new_rounded,
+                                        color: primaryColor,
+                                      ),
+                                      onPressed: () =>
+                                          _showExitConfirmationDialog(
+                                            context,
+                                            primaryColor,
+                                          ),
                                     ),
                                   ),
-                                  controlAffinity:
-                                      ListTileControlAffinity.leading,
-                                  activeColor: primaryColor,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.psychology,
+                                        color: primaryColor,
+                                        size: 28,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'MindEase Focus',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: primaryColor,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  checkboxShape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(4),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+
+                              _buildCycleIndicator(
+                                context,
+                                state,
+                                primaryColor,
+                              ),
+
+                              const SizedBox(height: 16),
+
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: primaryColor.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.access_time_rounded,
+                                      size: 16,
+                                      color: primaryColor,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'SESSÃO DE ${widget.task?.durationMinutes ?? 45} MINUTOS',
+                                      style: TextStyle(
+                                        color: primaryColor,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              const SizedBox(height: 40),
+
+                              BlocBuilder<PomodoroCubit, PomodoroState>(
+                                builder: (context, state) {
+                                  // For 15/30/45 min session, show cumulative remaining time during focus
+                                  final isSpecialMode = state.maxCycles == 3;
+                                  Duration displayTime = state.remaining;
+
+                                  if (isSpecialMode &&
+                                      state.phase == PomodoroPhase.foco) {
+                                    // Calculate total remaining focus time
+                                    // Cycles remaining * cycleDuration + current remaining
+                                    // Current cycle is 1-based (1, 2, 3)
+                                    final futureCycles =
+                                        state.maxCycles - state.cycle;
+                                    // Only add future cycles if we haven't exceeded maxCycles
+                                    if (futureCycles >= 0) {
+                                      // We need to use a fixed cycle duration based on total session time logic
+                                      // Since we don't have total session time in state, we infer from maxCycles=3
+                                      // 15m -> 5m, 30m -> 10m, 45m -> 15m
+
+                                      int cycleDurationMinutes =
+                                          5; // Default for 15m mode
+                                      if (state.totalDuration.inMinutes >= 15) {
+                                        cycleDurationMinutes =
+                                            15; // For 45m mode
+                                      } else if (state
+                                              .totalDuration
+                                              .inMinutes >=
+                                          10) {
+                                        cycleDurationMinutes =
+                                            10; // For 30m mode
+                                      }
+
+                                      displayTime =
+                                          state.remaining +
+                                          Duration(
+                                            minutes:
+                                                futureCycles *
+                                                cycleDurationMinutes,
+                                          );
+                                    }
+                                  }
+
+                                  final minutes = displayTime.inMinutes
+                                      .toString()
+                                      .padLeft(2, '0');
+                                  final seconds = displayTime.inSeconds
+                                      .remainder(60)
+                                      .toString()
+                                      .padLeft(2, '0');
+
+                                  return Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      _TimerCard(
+                                        value: minutes,
+                                        label: 'MINUTOS',
+                                        color: Brand.textMain,
+                                      ),
+                                      const SizedBox(width: 16),
+                                      _TimerCard(
+                                        value: seconds,
+                                        label: 'SEGUNDOS',
+                                        color: Brand.textMain,
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+
+                              const SizedBox(height: 32),
+
+                              Text(
+                                widget.task?.title ?? 'Sessão de Foco',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Brand.textMain,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Mantenha o foco. Você está indo bem.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Brand.textSecondary,
+                                ),
+                              ),
+
+                              const SizedBox(height: 32),
+
+                              if (_checklist.isNotEmpty)
+                                Container(
+                                  margin: const EdgeInsets.only(bottom: 32),
+                                  decoration: BoxDecoration(
+                                    color: Brand.surface,
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Brand.shadow,
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  padding: const EdgeInsets.all(8),
+                                  child: Column(
+                                    children: _checklist.asMap().entries.map((
+                                      entry,
+                                    ) {
+                                      final index = entry.key;
+                                      final item = entry.value;
+                                      return Container(
+                                        margin: const EdgeInsets.only(
+                                          bottom: 8,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Brand.backgroundAlt,
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                        child: CheckboxListTile(
+                                          value: item['done'] as bool,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              _checklist[index]['done'] =
+                                                  value!;
+                                            });
+                                          },
+                                          title: Text(
+                                            item['title'] as String,
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Brand.textMain,
+                                              decoration: (item['done'] as bool)
+                                                  ? TextDecoration.lineThrough
+                                                  : null,
+                                            ),
+                                          ),
+                                          controlAffinity:
+                                              ListTileControlAffinity.leading,
+                                          activeColor: primaryColor,
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                horizontal: 8,
+                                              ),
+                                          checkboxShape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
                                   ),
                                 ),
-                              );
-                            }).toList(),
+
+                              if (state.history.isNotEmpty) ...[
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    'Histórico da Sessão',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Brand.textMain,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                ...state.history.reversed.map((item) {
+                                  return Container(
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Brand.surface,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: Brand.border),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.check_circle,
+                                          size: 20,
+                                          color: Brand.success,
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              DateFormat(
+                                                'HH:mm',
+                                              ).format(item.date),
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                                color: Brand.textMain,
+                                              ),
+                                            ),
+                                            Text(
+                                              item.status,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Brand.textSecondary,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const Spacer(),
+                                        Text(
+                                          '${item.duration.inMinutes} min',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            color: Brand.textMain,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }),
+                                const SizedBox(height: 24),
+                              ],
+                            ],
                           ),
                         ),
-
-                      const Spacer(),
-
+                      ),
+                      const SizedBox(height: 16),
                       BlocBuilder<PomodoroCubit, PomodoroState>(
                         builder: (context, state) {
                           final isRunning = state.running;
@@ -250,24 +410,24 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
                                     isRunning
                                         ? Icons.pause_rounded
                                         : Icons.play_arrow_rounded,
-                                    color: Brand.textSecondary,
+                                    color: Brand.textMain,
                                   ),
                                   label: Text(
-                                    isRunning ? 'Pausar' : 'Retomar',
+                                    isRunning ? 'Pausar' : 'Continuar',
                                     style: TextStyle(
-                                      color: Brand.textSecondary,
+                                      color: Brand.textMain,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Brand.backgroundAlt,
-                                    elevation: 0,
+                                    backgroundColor: Brand.border,
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 16,
                                     ),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
+                                    elevation: 0,
                                   ),
                                 ),
                               ),
@@ -275,59 +435,34 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
                               Expanded(
                                 child: ElevatedButton.icon(
                                   onPressed: () {
-                                    Navigator.of(context).pushReplacement(
-                                      MaterialPageRoute(
-                                        builder: (_) => const FocusSummaryPage(
-                                          completedMinutes: 15,
-                                        ),
-                                      ),
-                                    );
+                                    context.read<PomodoroCubit>().reset();
                                   },
                                   icon: const Icon(
                                     Icons.check_circle_outline_rounded,
-                                    color: Brand.surface,
+                                    color: Brand.textWhite,
                                   ),
                                   label: const Text(
                                     'Finalizar',
                                     style: TextStyle(
-                                      color: Brand.surface,
+                                      color: Brand.textWhite,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: primaryColor,
-                                    elevation: 0,
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 16,
                                     ),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
+                                    elevation: 0,
                                   ),
                                 ),
                               ),
                             ],
                           );
                         },
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      TextButton.icon(
-                        onPressed: () =>
-                            _showExitConfirmationDialog(context, primaryColor),
-                        icon: Icon(
-                          Icons.logout_rounded,
-                          size: 18,
-                          color: Brand.textSecondary,
-                        ),
-                        label: Text(
-                          'Sair do foco',
-                          style: TextStyle(
-                            color: Brand.textSecondary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
                       ),
                       const SizedBox(height: 16),
                     ],
@@ -338,6 +473,191 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
           },
         ),
       ),
+    );
+  }
+
+  Widget _buildCycleIndicator(
+    BuildContext context,
+    PomodoroState state,
+    Color primaryColor,
+  ) {
+    // 15 min logic removed from Cubit, so maxCycles will be 4
+    final totalItems = state.maxCycles * 2;
+
+    return Column(
+      children: [
+        Row(
+          children: List.generate(totalItems, (index) {
+            final isLastItem = index == totalItems - 1;
+
+            bool isFocusBar = false;
+            bool isLongBreak = false;
+            bool isShortBreak = false;
+
+            if (isLastItem) {
+              isLongBreak = true;
+            } else {
+              isFocusBar = index % 2 == 0;
+              isShortBreak = !isFocusBar;
+            }
+
+            int itemCycle = (index ~/ 2) + 1;
+
+            // Define colors
+            final Color focusColor = Brand.primary; // Purple for Focus
+            final Color breakColor = Brand.success; // Green for Breaks
+
+            if (isFocusBar) {
+              bool isCompleted =
+                  state.cycle > itemCycle ||
+                  (state.cycle == itemCycle &&
+                      state.phase != PomodoroPhase.foco);
+              bool isCurrent =
+                  state.cycle == itemCycle && state.phase == PomodoroPhase.foco;
+
+              return Expanded(
+                child: Container(
+                  height: 6,
+                  margin: const EdgeInsets.symmetric(horizontal: 2),
+                  decoration: BoxDecoration(
+                    color: isCompleted ? focusColor : Brand.backgroundAlt,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                  child: isCurrent
+                      ? LayoutBuilder(
+                          builder: (context, constraints) {
+                            final double remainingPct =
+                                state.totalDuration.inSeconds == 0
+                                ? 0
+                                : state.remaining.inSeconds /
+                                      state.totalDuration.inSeconds;
+                            final double elapsedPct = 1.0 - remainingPct;
+
+                            return Align(
+                              alignment: Alignment.centerLeft,
+                              child: Container(
+                                width: constraints.maxWidth * elapsedPct,
+                                decoration: BoxDecoration(
+                                  color: focusColor,
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
+                              ),
+                            );
+                          },
+                        )
+                      : null,
+                ),
+              );
+            } else {
+              // Break Dot
+              bool isCompleted = state.cycle > itemCycle;
+
+              if (!isCompleted && state.cycle == itemCycle) {
+                if (isShortBreak &&
+                    state.phase == PomodoroPhase.intervaloFinal) {
+                  isCompleted = true;
+                }
+              }
+
+              bool isCurrent = false;
+              if (isLongBreak) {
+                isCurrent =
+                    state.cycle == itemCycle &&
+                    state.phase == PomodoroPhase.intervaloFinal;
+              } else {
+                isCurrent =
+                    state.cycle == itemCycle &&
+                    state.phase == PomodoroPhase.intervaloCurto;
+              }
+
+              return Container(
+                width: 8,
+                height: 8,
+                margin: const EdgeInsets.symmetric(horizontal: 2),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: (isCompleted || isCurrent)
+                      ? breakColor
+                      : Brand.backgroundAlt,
+                ),
+                child: isCurrent
+                    ? LayoutBuilder(
+                        builder: (context, constraints) {
+                          final double remainingPct =
+                              state.totalDuration.inSeconds == 0
+                              ? 0
+                              : state.remaining.inSeconds /
+                                    state.totalDuration.inSeconds;
+                          final double elapsedPct = 1.0 - remainingPct;
+
+                          return Center(
+                            child: Container(
+                              width: constraints.maxWidth * elapsedPct,
+                              height: constraints.maxHeight * elapsedPct,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: breakColor,
+                              ),
+                            ),
+                          );
+                        },
+                      )
+                    : null,
+              );
+            }
+          }),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: state.totalCycles > state.maxCycles
+              ? MainAxisAlignment.spaceBetween
+              : MainAxisAlignment.center,
+          children: [
+            Text(
+              state.phase == PomodoroPhase.foco
+                  ? 'CICLO ${state.cycle} DE ${state.maxCycles}'
+                  : (state.phase == PomodoroPhase.intervaloFinal
+                        ? 'INTERVALO LONGO'
+                        : 'INTERVALO CURTO'),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Brand.textSecondary,
+                letterSpacing: 1.0,
+              ),
+            ),
+            if (state.totalCycles > state.maxCycles)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Brand.backgroundGrey,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: primaryColor.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.emoji_events_outlined,
+                      size: 12,
+                      color: Brand.textSecondary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${state.totalCycles}º CICLO DE FOCO',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Brand.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ],
     );
   }
 

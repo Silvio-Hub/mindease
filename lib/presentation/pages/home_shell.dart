@@ -24,10 +24,10 @@ class _HomeShellState extends State<HomeShell> {
   }
 
   List<Widget> get _pages => [
-    FocusDashboardPage(onSeeAllTasks: () => setState(() => _index = 1)),
-    const TasksPage(),
-    const FocusSettingsPage(),
-  ];
+        FocusDashboardPage(onSeeAllTasks: () => setState(() => _index = 1)),
+        const TasksPage(),
+        FocusSettingsPage(onSaved: () => setState(() => _index = 0)),
+      ];
 
   @override
   Widget build(BuildContext context) {

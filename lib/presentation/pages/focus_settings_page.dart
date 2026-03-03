@@ -2,24 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mindease/app/di/injector.dart';
 import 'package:mindease/core/constants/brand.dart';
+import 'package:mindease/domain/entities/task.dart';
+import 'package:mindease/domain/entities/user_preferences.dart';
 import 'package:mindease/domain/repositories/auth_repository.dart';
 import 'package:mindease/presentation/controllers/accessibility_cubit.dart';
 import 'package:mindease/presentation/pages/login_page.dart';
 
-enum EnergyLevel { baixa, media, alta }
-
-enum InfoDensity { simples, equilibrada, detalhada }
-
 class FocusSettingsPage extends StatefulWidget {
-  const FocusSettingsPage({super.key});
+  final VoidCallback? onSaved;
+
+  const FocusSettingsPage({super.key, this.onSaved});
+
   @override
   State<FocusSettingsPage> createState() => _FocusSettingsPageState();
 }
 
 class _FocusSettingsPageState extends State<FocusSettingsPage> {
-  EnergyLevel energy = EnergyLevel.media;
+  TaskEnergy energy = TaskEnergy.medium;
   InfoDensity density = InfoDensity.equilibrada;
   bool focusMode = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final state = context.read<AccessibilityCubit>().state;
+    focusMode = state.focusMode;
+    energy = state.energyLevel ?? TaskEnergy.medium;
+    density = state.infoDensity ?? InfoDensity.equilibrada;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -135,44 +145,35 @@ class _FocusSettingsPageState extends State<FocusSettingsPage> {
                 style: TextStyle(color: Brand.textSecondary, fontSize: 14),
               ),
               const SizedBox(height: 16),
-              SegmentedButton<EnergyLevel>(
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.resolveWith<Color?>((
-                    Set<WidgetState> states,
-                  ) {
-                    if (states.contains(WidgetState.selected)) {
-                      return Brand.primary.withValues(alpha: 0.2);
-                    }
-                    return null;
-                  }),
-                  foregroundColor: WidgetStateProperty.resolveWith<Color?>((
-                    Set<WidgetState> states,
-                  ) {
-                    if (states.contains(WidgetState.selected)) {
-                      return Brand.primary;
-                    }
-                    return Brand.textSecondary;
-                  }),
-                ),
-                segments: const [
-                  ButtonSegment(
-                    value: EnergyLevel.baixa,
-                    label: Text('Baixa'),
-                    icon: Icon(Icons.battery_1_bar),
+              Row(
+                children: [
+                  Expanded(
+                    child: _SelectableButton(
+                      label: 'Baixa',
+                      icon: Icons.battery_1_bar,
+                      isSelected: energy == TaskEnergy.low,
+                      onTap: () => setState(() => energy = TaskEnergy.low),
+                    ),
                   ),
-                  ButtonSegment(
-                    value: EnergyLevel.media,
-                    label: Text('Média'),
-                    icon: Icon(Icons.battery_4_bar),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _SelectableButton(
+                      label: 'Média',
+                      icon: Icons.battery_4_bar,
+                      isSelected: energy == TaskEnergy.medium,
+                      onTap: () => setState(() => energy = TaskEnergy.medium),
+                    ),
                   ),
-                  ButtonSegment(
-                    value: EnergyLevel.alta,
-                    label: Text('Alta'),
-                    icon: Icon(Icons.battery_full),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _SelectableButton(
+                      label: 'Alta',
+                      icon: Icons.battery_full,
+                      isSelected: energy == TaskEnergy.high,
+                      onTap: () => setState(() => energy = TaskEnergy.high),
+                    ),
                   ),
                 ],
-                selected: {energy},
-                onSelectionChanged: (s) => setState(() => energy = s.first),
               ),
             ],
           ),
@@ -233,41 +234,35 @@ class _FocusSettingsPageState extends State<FocusSettingsPage> {
                 style: TextStyle(color: Brand.textSecondary, fontSize: 13),
               ),
               const SizedBox(height: 16),
-              SegmentedButton<InfoDensity>(
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.resolveWith<Color?>((
-                    Set<WidgetState> states,
-                  ) {
-                    if (states.contains(WidgetState.selected)) {
-                      return Brand.primary.withValues(alpha: 0.2);
-                    }
-                    return null;
-                  }),
-                  foregroundColor: WidgetStateProperty.resolveWith<Color?>((
-                    Set<WidgetState> states,
-                  ) {
-                    if (states.contains(WidgetState.selected)) {
-                      return Brand.primary;
-                    }
-                    return Brand.textSecondary;
-                  }),
-                ),
-                segments: const [
-                  ButtonSegment(
-                    value: InfoDensity.simples,
-                    label: Text('Simples'),
+              Row(
+                children: [
+                  Expanded(
+                    child: _SelectableButton(
+                      label: 'Simples',
+                      isSelected: density == InfoDensity.simples,
+                      onTap: () =>
+                          setState(() => density = InfoDensity.simples),
+                    ),
                   ),
-                  ButtonSegment(
-                    value: InfoDensity.equilibrada,
-                    label: Text('Padrão'),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _SelectableButton(
+                      label: 'Padrão',
+                      isSelected: density == InfoDensity.equilibrada,
+                      onTap: () =>
+                          setState(() => density = InfoDensity.equilibrada),
+                    ),
                   ),
-                  ButtonSegment(
-                    value: InfoDensity.detalhada,
-                    label: Text('Detalhada'),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _SelectableButton(
+                      label: 'Detalhada',
+                      isSelected: density == InfoDensity.detalhada,
+                      onTap: () =>
+                          setState(() => density = InfoDensity.detalhada),
+                    ),
                   ),
                 ],
-                selected: {density},
-                onSelectionChanged: (s) => setState(() => density = s.first),
               ),
             ],
           ),
@@ -282,7 +277,11 @@ class _FocusSettingsPageState extends State<FocusSettingsPage> {
       height: 56,
       child: ElevatedButton(
         onPressed: () {
-          context.read<AccessibilityCubit>().setFocusMode(focusMode);
+          context.read<AccessibilityCubit>().updateSettings(
+            focusMode: focusMode,
+            energyLevel: energy,
+            infoDensity: density,
+          );
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Preferências salvas com sucesso!'),
@@ -290,6 +289,7 @@ class _FocusSettingsPageState extends State<FocusSettingsPage> {
               behavior: SnackBarBehavior.floating,
             ),
           );
+          widget.onSaved?.call();
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Brand.primary,
@@ -355,6 +355,57 @@ class _FocusSettingsPageState extends State<FocusSettingsPage> {
         ),
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        ),
+      ),
+    );
+  }
+}
+
+class _SelectableButton extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final IconData? icon;
+
+  const _SelectableButton({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+    this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? Brand.selectedBg : Brand.surface,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: isSelected ? Brand.primary : Brand.border),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (icon != null) ...[
+              Icon(
+                icon,
+                size: 16,
+                color: isSelected ? Brand.primary : Brand.textSecondary,
+              ),
+              const SizedBox(width: 8),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isSelected ? Brand.primary : Brand.textSecondary,
+              ),
+            ),
+          ],
         ),
       ),
     );

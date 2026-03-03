@@ -1,3 +1,4 @@
+import 'package:mindease/domain/entities/task.dart';
 import 'package:mindease/domain/entities/user_preferences.dart';
 import 'package:mindease/domain/repositories/preferences_repository.dart';
 import '../datasources/preferences_local_datasource.dart';
@@ -19,6 +20,21 @@ class PreferencesRepositoryImpl implements PreferencesRepository {
         animationsEnabled: true,
       );
     }
+    
+    TaskEnergy? energy;
+    if (map['energyLevel'] != null) {
+      try {
+        energy = TaskEnergy.values[map['energyLevel'] as int];
+      } catch (_) {}
+    }
+
+    InfoDensity? density;
+    if (map['infoDensity'] != null) {
+      try {
+        density = InfoDensity.values[map['infoDensity'] as int];
+      } catch (_) {}
+    }
+
     return UserPreferences(
       focusMode: (map['focusMode'] as bool?) ?? false,
       highContrast: (map['highContrast'] as bool?) ?? false,
@@ -26,6 +42,8 @@ class PreferencesRepositoryImpl implements PreferencesRepository {
       spacingScale: (map['spacingScale'] as double?) ?? 1.0,
       summaryMode: (map['summaryMode'] as bool?) ?? true,
       animationsEnabled: (map['animationsEnabled'] as bool?) ?? true,
+      energyLevel: energy,
+      infoDensity: density,
     );
   }
 
@@ -38,6 +56,8 @@ class PreferencesRepositoryImpl implements PreferencesRepository {
       'spacingScale': prefs.spacingScale,
       'summaryMode': prefs.summaryMode,
       'animationsEnabled': prefs.animationsEnabled,
+      'energyLevel': prefs.energyLevel?.index,
+      'infoDensity': prefs.infoDensity?.index,
     });
   }
 }
