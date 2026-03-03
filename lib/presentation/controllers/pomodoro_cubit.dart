@@ -158,6 +158,12 @@ class PomodoroCubit extends Cubit<PomodoroState> {
     });
   }
 
+  void skipBreak() {
+    if (!state.isWorkPhase) {
+      _handlePhaseTransition();
+    }
+  }
+
   void _handlePhaseTransition() {
     if (state.phase == PomodoroPhase.foco) {
       // End of Focus - Add to history
