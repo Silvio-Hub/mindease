@@ -19,22 +19,41 @@ class _SplashPageState extends State<SplashPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final cubit = context.read<AccessibilityCubit>();
       final navigator = Navigator.of(context);
+
       cubit.init().then((_) async {
         if (!mounted) return;
 
-        final authRepo = sl<AuthRepository>();
-        final user = await authRepo.getCurrentUser();
+        try {
+          final authRepo = sl<AuthRepository>();
+          // Adicionamos um tratamento de erro aqui para não travar na splash
+          final user = await authRepo
+              .getCurrentUser()
+              .timeout(const Duration(seconds: 10), onTimeout: () => null)
+              .catchError((e) {
+                debugPrint('Erro ao obter usuário atual na Splash: $e');
+                return null;
+              });
 
-        if (!mounted) return;
+          if (!mounted) return;
 
-        if (user != null) {
-          navigator.pushReplacement(
-            MaterialPageRoute(builder: (_) => const HomeShell()),
-          );
-        } else {
-          navigator.pushReplacement(
-            MaterialPageRoute(builder: (_) => const LoginPage()),
-          );
+          if (user != null) {
+            navigator.pushReplacement(
+              MaterialPageRoute(builder: (_) => const HomeShell()),
+            );
+          } else {
+            // Se der erro ou não tiver usuário, vai para login
+            // Isso evita o loop infinito se o token estiver inválido ou sem permissão
+            navigator.pushReplacement(
+              MaterialPageRoute(builder: (_) => const LoginPage()),
+            );
+          }
+        } catch (e) {
+          debugPrint('Erro fatal na SplashPage: $e');
+          if (mounted) {
+            navigator.pushReplacement(
+              MaterialPageRoute(builder: (_) => const LoginPage()),
+            );
+          }
         }
       });
     });

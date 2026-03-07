@@ -6,7 +6,11 @@ class LoginUseCase {
 
   LoginUseCase(this.repository);
 
-  Future<User> call(String email, String password) {
-    return repository.login(email, password);
+  Future<User> call(String email, String password) async {
+    final user = await repository.signInWithEmail(email, password);
+    if (user == null) {
+      throw Exception('Login failed');
+    }
+    return user;
   }
 }

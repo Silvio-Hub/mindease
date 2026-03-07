@@ -1,66 +1,83 @@
-import 'package:hive/hive.dart';
+import 'package:equatable/equatable.dart';
 
-part 'task.g.dart';
-
-@HiveType(typeId: 1)
 enum TaskEnergy {
-  @HiveField(0)
   high,
-  @HiveField(1)
   medium,
-  @HiveField(2)
   low,
 }
 
-@HiveType(typeId: 0)
-class Task {
-  @HiveField(0)
+enum FocusDuration {
+  short(15),
+  medium(30),
+  long(45),
+  extraLong(60);
+
+  final int minutes;
+  const FocusDuration(this.minutes);
+}
+
+class Task extends Equatable {
   final String id;
-  @HiveField(1)
+  final String userId;
   final String title;
-  @HiveField(2)
+  final List<String> subtasks;
   final bool inProgress;
-  @HiveField(3)
-  final bool done;
-  @HiveField(4)
-  final List<String> checklist;
-  @HiveField(5)
-  final DateTime? dueDate;
-  @HiveField(6)
-  final int? durationMinutes;
-  @HiveField(7)
-  final TaskEnergy? energy;
+  final bool completed;
+  final DateTime scheduledFor;
+  final FocusDuration focusDuration;
+  final TaskEnergy energy;
+  final DateTime createdAt;
 
   const Task({
     required this.id,
+    required this.userId,
     required this.title,
+    this.subtasks = const [],
     this.inProgress = false,
-    this.done = false,
-    this.checklist = const [],
-    this.dueDate,
-    this.durationMinutes,
-    this.energy,
+    this.completed = false,
+    required this.scheduledFor,
+    required this.focusDuration,
+    required this.energy,
+    required this.createdAt,
   });
 
   Task copyWith({
     String? id,
+    String? userId,
     String? title,
+    List<String>? subtasks,
     bool? inProgress,
-    bool? done,
-    List<String>? checklist,
-    DateTime? dueDate,
-    int? durationMinutes,
+    bool? completed,
+    DateTime? scheduledFor,
+    FocusDuration? focusDuration,
     TaskEnergy? energy,
+    DateTime? createdAt,
   }) {
     return Task(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
       title: title ?? this.title,
+      subtasks: subtasks ?? this.subtasks,
       inProgress: inProgress ?? this.inProgress,
-      done: done ?? this.done,
-      checklist: checklist ?? this.checklist,
-      dueDate: dueDate ?? this.dueDate,
-      durationMinutes: durationMinutes ?? this.durationMinutes,
+      completed: completed ?? this.completed,
+      scheduledFor: scheduledFor ?? this.scheduledFor,
+      focusDuration: focusDuration ?? this.focusDuration,
       energy: energy ?? this.energy,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
+
+  @override
+  List<Object?> get props => [
+    id,
+    userId,
+    title,
+    subtasks,
+    inProgress,
+    completed,
+    scheduledFor,
+    focusDuration,
+    energy,
+    createdAt,
+  ];
 }

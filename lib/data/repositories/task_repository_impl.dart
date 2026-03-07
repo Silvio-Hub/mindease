@@ -1,37 +1,35 @@
-import 'package:mindease/domain/entities/task.dart';
-import 'package:mindease/domain/repositories/task_repository.dart';
-import '../datasources/tasks_local_datasource.dart';
+import '../../domain/entities/task.dart';
+import '../../domain/repositories/task_repository.dart';
+import '../datasources/task_remote_datasource.dart';
+import '../models/task_model.dart';
 
 class TaskRepositoryImpl implements TaskRepository {
-  final TasksLocalDataSource local;
-  TaskRepositoryImpl(this.local);
+  final TaskRemoteDataSource remoteDataSource;
+
+  TaskRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<List<Task>> list() async {
-    return local.list();
+  Future<List<Task>> getTasks(String userId) async {
+    return await remoteDataSource.getTasks(userId);
   }
 
   @override
-  Future<void> save(Task task) async {
-    await local.put(task.id, task);
+  Future<void> addTask(Task task) async {
+    await remoteDataSource.addTask(TaskModel.fromEntity(task));
   }
 
   @override
-  Future<void> delete(String id) => local.delete(id);
+  Future<void> updateTask(Task task) async {
+    await remoteDataSource.updateTask(TaskModel.fromEntity(task));
+  }
 
   @override
-  Future<void> move(
-    String id, {
-    required bool inProgress,
-    required bool done,
-  }) async {
-    final list = await local.list();
-    try {
-      final task = list.firstWhere((t) => t.id == id);
-      final updated = task.copyWith(inProgress: inProgress, done: done);
-      await local.put(id, updated);
-    } catch (_) {
-      // Task not found
-    }
+  Future<void> deleteTask(String taskId) async {
+    await remoteDataSource.deleteTask(taskId);
+  }
+
+  @override
+  Stream<List<Task>> watchTasks(String userId) {
+    return remoteDataSource.watchTasks(userId);
   }
 }

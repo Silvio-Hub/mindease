@@ -20,19 +20,16 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
   @override
   void initState() {
     super.initState();
-    _checklist =
-        widget.task?.checklist
-            .map((item) => {'title': item, 'done': false})
-            .toList() ??
-        [];
+    _checklist = (widget.task?.subtasks ?? [])
+        .map((item) => {'title': item, 'done': false})
+        .toList();
   }
 
-  @override
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) {
-        final duration = widget.task?.durationMinutes ?? 45;
+        final duration = widget.task?.focusDuration.minutes ?? 45;
         return PomodoroCubit(
           focusMinutes: duration,
           startInRestMode: widget.startInRestMode,
@@ -134,7 +131,7 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'SESSÃO DE ${widget.task?.durationMinutes ?? 45} MINUTOS',
+                            'SESSÃO DE ${widget.task?.focusDuration.minutes ?? 45} MINUTOS',
                             style: TextStyle(
                               color: primaryColor,
                               fontWeight: FontWeight.bold,
@@ -429,7 +426,7 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'SESSÃO DE ${widget.task?.durationMinutes ?? 45} MINUTOS',
+                    'SESSÃO DE ${widget.task?.focusDuration.minutes ?? 45} MINUTOS',
                     style: const TextStyle(
                       color: sessionBadgeColor,
                       fontWeight: FontWeight.bold,

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mindease/core/constants/brand.dart';
@@ -63,13 +64,14 @@ class _TasksPageState extends State<TasksPage>
       // and use _isSameDay with original t.dueDate if possible.
 
       if (_selectedDateFilterIndex == 0) {
-        matchesDate = _isSameDay(t.dueDate, today);
+        matchesDate = _isSameDay(t.scheduledFor, today);
       } else if (_selectedDateFilterIndex == 1) {
-        matchesDate = _isSameDay(t.dueDate, tomorrow);
+        matchesDate = _isSameDay(t.scheduledFor, tomorrow);
       } else {
         // Other days: not today AND not tomorrow
         matchesDate =
-            !_isSameDay(t.dueDate, today) && !_isSameDay(t.dueDate, tomorrow);
+            !_isSameDay(t.scheduledFor, today) &&
+            !_isSameDay(t.scheduledFor, tomorrow);
       }
 
       return matchesSearch && matchesDate;
@@ -83,10 +85,7 @@ class _TasksPageState extends State<TasksPage>
         if (energyComparison != 0) return energyComparison;
       }
 
-      if (a.dueDate == null && b.dueDate == null) return 0;
-      if (a.dueDate == null) return 1;
-      if (b.dueDate == null) return -1;
-      return a.dueDate!.compareTo(b.dueDate!);
+      return a.scheduledFor.compareTo(b.scheduledFor);
     });
 
     return filtered;
@@ -280,7 +279,7 @@ class _TasksPageState extends State<TasksPage>
                             children: [
                               _TaskListView(
                                 items: filtered
-                                    .where((t) => !t.inProgress && !t.done)
+                                    .where((t) => !t.inProgress && !t.completed)
                                     .toList(),
                                 emptyMessage: 'Nenhuma tarefa pendente.',
                                 emptyIcon: Icons.playlist_add,
@@ -289,7 +288,7 @@ class _TasksPageState extends State<TasksPage>
                               ),
                               _TaskListView(
                                 items: filtered
-                                    .where((t) => t.inProgress && !t.done)
+                                    .where((t) => t.inProgress && !t.completed)
                                     .toList(),
                                 emptyMessage: 'Nenhuma tarefa em progresso.',
                                 emptyIcon: Icons.self_improvement,
@@ -297,7 +296,9 @@ class _TasksPageState extends State<TasksPage>
                                 density: infoDensity,
                               ),
                               _TaskListView(
-                                items: filtered.where((t) => t.done).toList(),
+                                items: filtered
+                                    .where((t) => t.completed)
+                                    .toList(),
                                 emptyMessage: 'Nenhuma tarefa concluída.',
                                 emptyIcon: Icons.check_circle_outline,
                                 statusColor: Brand.success,
@@ -373,23 +374,28 @@ class _TasksPageState extends State<TasksPage>
           if (!context.mounted) return;
 
           if (result is Map) {
-            final id = DateTime.now().millisecondsSinceEpoch.toString();
+            final id = FirebaseFirestore.instance.collection('tasks').doc().id;
             final title = (result['title'] as String?) ?? 'Nova tarefa';
             final steps =
-                (result['steps'] as List?)?.cast<String>() ?? const [];
-            final duration = result['estimate'] as int?;
-            final energy = result['energy'] as TaskEnergy?;
-            final dueDate = result['dueDate'] as DateTime?;
+                (result['subtasks'] as List?)?.cast<String>() ?? const [];
+            final duration =
+                result['focusDuration'] as FocusDuration? ??
+                FocusDuration.medium;
+            final energy = result['energy'] as TaskEnergy? ?? TaskEnergy.medium;
+            final dueDate =
+                result['scheduledFor'] as DateTime? ?? DateTime.now();
 
             context.read<TasksBloc>().add(
               AddTask(
                 Task(
                   id: id,
+                  userId: '', // ID será preenchido pelo Bloc
                   title: title,
-                  checklist: steps,
-                  durationMinutes: duration,
+                  subtasks: steps,
+                  focusDuration: duration,
                   energy: energy,
-                  dueDate: dueDate,
+                  scheduledFor: dueDate,
+                  createdAt: DateTime.now(),
                 ),
               ),
             );
@@ -474,10 +480,6 @@ class _TaskCard extends StatelessWidget {
         energyBgColor = Brand.energyLowBg;
         energyLabel = 'Energia: Baixa';
         break;
-      default:
-        energyColor = Brand.textSecondary;
-        energyBgColor = Brand.backgroundAlt;
-        energyLabel = 'Energia: -';
     }
 
     return Container(
@@ -499,7 +501,7 @@ class _TaskCard extends StatelessWidget {
         child: InkWell(
           onTap: () {
             context.read<TasksBloc>().add(
-              UpdateTask(task.copyWith(done: !task.done)),
+              UpdateTask(task.copyWith(completed: !task.completed)),
             );
           },
           borderRadius: BorderRadius.circular(12),
@@ -511,14 +513,14 @@ class _TaskCard extends StatelessWidget {
                   width: 24,
                   height: 24,
                   decoration: BoxDecoration(
-                    color: task.done ? Brand.primary : Brand.transparent,
+                    color: task.completed ? Brand.primary : Brand.transparent,
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(
-                      color: task.done ? Brand.primary : Brand.textLight,
+                      color: task.completed ? Brand.primary : Brand.textLight,
                       width: 2,
                     ),
                   ),
-                  child: task.done
+                  child: task.completed
                       ? const Icon(
                           Icons.check,
                           size: 16,
@@ -537,8 +539,10 @@ class _TaskCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: task.done ? Brand.textLight : Brand.textMain,
-                          decoration: task.done
+                          color: task.completed
+                              ? Brand.textLight
+                              : Brand.textMain,
+                          decoration: task.completed
                               ? TextDecoration.lineThrough
                               : null,
                         ),
@@ -547,62 +551,59 @@ class _TaskCard extends StatelessWidget {
                       if (density != InfoDensity.simples)
                         Row(
                           children: [
-                            if (task.durationMinutes != null) ...[
-                              Icon(
-                                Icons.timer_outlined,
-                                size: 14,
+                            Icon(
+                              Icons.timer_outlined,
+                              size: 14,
+                              color: Brand.textSecondary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${task.focusDuration.minutes}m',
+                              style: TextStyle(
+                                fontSize: 12,
                                 color: Brand.textSecondary,
+                                fontWeight: FontWeight.w500,
                               ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${task.durationMinutes}m',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Brand.textSecondary,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                            ],
+                            ),
+                            const SizedBox(width: 12),
 
-                            if (task.energy != null)
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: energyBgColor,
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.bolt,
-                                      size: 12,
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: energyBgColor,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.bolt,
+                                    size: 12,
+                                    color: energyColor,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    energyLabel,
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
                                       color: energyColor,
                                     ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      energyLabel,
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                        color: energyColor,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
+                            ),
                           ],
                         ),
                       if (density == InfoDensity.detalhada &&
-                          task.checklist.isNotEmpty) ...[
+                          task.subtasks.isNotEmpty) ...[
                         const SizedBox(height: 12),
                         const Divider(color: Brand.border, height: 1),
                         const SizedBox(height: 8),
-                        ...task.checklist
+                        ...task.subtasks
                             .take(3)
                             .map(
                               (step) => Padding(
@@ -642,11 +643,11 @@ class _TaskCard extends StatelessWidget {
                                 ),
                               ),
                             ),
-                        if (task.checklist.length > 3)
+                        if (task.subtasks.length > 3)
                           Padding(
                             padding: const EdgeInsets.only(top: 4),
                             child: Text(
-                              '+ ${task.checklist.length - 3} itens',
+                              '+ ${task.subtasks.length - 3} itens',
                               style: const TextStyle(
                                 color: Brand.primary,
                                 fontSize: 12,
@@ -775,189 +776,8 @@ class _TaskListView extends StatelessWidget {
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final task = items[index];
-        return TaskCard(task: task, statusColor: statusColor, density: density);
+        return _TaskCard(task: task, density: density);
       },
-    );
-  }
-}
-
-class TaskCard extends StatelessWidget {
-  final Task task;
-  final Color statusColor;
-  final InfoDensity density;
-
-  const TaskCard({
-    super.key,
-    required this.task,
-    required this.statusColor,
-    required this.density,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    final duration = task.durationMinutes ?? 60;
-    final energy = task.energy ?? TaskEnergy.medium;
-
-    Color energyColor;
-    String energyLabel;
-
-    switch (energy) {
-      case TaskEnergy.high:
-        energyColor = Brand.energyHighBg;
-        energyLabel = 'Energia: Alta';
-        break;
-      case TaskEnergy.medium:
-        energyColor = Brand.energyMediumBg;
-        energyLabel = 'Energia: Média';
-        break;
-      case TaskEnergy.low:
-        energyColor = Brand.energyLowBg;
-        energyLabel = 'Energia: Baixa';
-        break;
-    }
-
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: Brand.border),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            InkWell(
-              onTap: () {
-                final bloc = context.read<TasksBloc>();
-                if (task.done) {
-                  bloc.add(MoveTask(task.id, inProgress: true, done: false));
-                } else if (task.inProgress) {
-                  bloc.add(MoveTask(task.id, inProgress: false, done: true));
-                } else {
-                  bloc.add(MoveTask(task.id, inProgress: true, done: false));
-                }
-              },
-              borderRadius: BorderRadius.circular(4),
-              child: Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: task.done
-                        ? theme.colorScheme.primary
-                        : Brand.textLight,
-                    width: 2,
-                  ),
-                  borderRadius: BorderRadius.circular(6),
-                  color: task.done
-                      ? theme.colorScheme.primary
-                      : Brand.transparent,
-                ),
-                child: task.done
-                    ? const Icon(Icons.check, size: 16, color: Brand.textWhite)
-                    : null,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    task.title,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      decoration: task.done ? TextDecoration.lineThrough : null,
-                      color: task.done ? Brand.textLight : Brand.textMain,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  if (density != InfoDensity.simples)
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.timer_outlined,
-                          size: 16,
-                          color: Brand.textSecondary,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${duration}m',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: Brand.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: energyColor,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            energyLabel,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: Brand.textMain,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  if (density == InfoDensity.detalhada &&
-                      task.checklist.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    const Divider(color: Brand.border, height: 1),
-                    const SizedBox(height: 8),
-                    ...task.checklist.map(
-                      (item) => Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(top: 2),
-                              child: Container(
-                                width: 14,
-                                height: 14,
-                                decoration: BoxDecoration(
-                                  color: Brand.transparent,
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(
-                                    color: Brand.textLight,
-                                    width: 1.5,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                item,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: Brand.textSecondary,
-                                  fontSize: 12,
-                                  height: 1.3,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            _TaskOptionsButton(task: task),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -974,10 +794,10 @@ class _TaskOptionsButton extends StatelessWidget {
     String? moveLabel;
 
     if (showMoveOptions) {
-      if (!task.done && !task.inProgress) {
+      if (!task.completed && !task.inProgress) {
         moveAction = 'move_progress';
         moveLabel = 'Mover para "Em progresso"';
-      } else if (task.inProgress && !task.done) {
+      } else if (task.inProgress && !task.completed) {
         moveAction = 'move_done';
         moveLabel = 'Mover para "Concluído"';
       }
@@ -999,20 +819,20 @@ class _TaskOptionsButton extends StatelessWidget {
           if (result != null && context.mounted) {
             final updatedTask = task.copyWith(
               title: result['title'],
-              checklist: (result['steps'] as List?)?.cast<String>() ?? [],
-              durationMinutes: result['estimate'],
+              subtasks: (result['subtasks'] as List?)?.cast<String>() ?? [],
+              focusDuration: result['focusDuration'],
               energy: result['energy'],
-              dueDate: result['dueDate'],
+              scheduledFor: result['scheduledFor'],
             );
             context.read<TasksBloc>().add(UpdateTask(updatedTask));
           }
         } else if (value == 'move_progress') {
           context.read<TasksBloc>().add(
-            MoveTask(task.id, inProgress: true, done: false),
+            MoveTask(task.id, inProgress: true, completed: false),
           );
         } else if (value == 'move_done') {
           context.read<TasksBloc>().add(
-            MoveTask(task.id, inProgress: false, done: true),
+            MoveTask(task.id, inProgress: false, completed: true),
           );
         } else if (value == 'delete') {
           final confirm = await showDialog<bool>(

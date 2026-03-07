@@ -16,7 +16,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
   late final TextEditingController _titleCtrl;
   final _stepCtrls = List.generate(3, (_) => TextEditingController());
 
-  late int _estimateMinutes;
+  late FocusDuration _focusDuration;
   late TaskEnergy _energy;
 
   late int _dateOption;
@@ -30,34 +30,33 @@ class _EditTaskPageState extends State<EditTaskPage> {
 
     // Inicializa checklist (até 3 itens)
     for (int i = 0; i < 3; i++) {
-      if (i < t.checklist.length) {
-        _stepCtrls[i].text = t.checklist[i];
+      if (i < t.subtasks.length) {
+        _stepCtrls[i].text = t.subtasks[i];
       }
     }
 
-    _estimateMinutes = t.durationMinutes ?? 30;
-    _energy = t.energy ?? TaskEnergy.medium;
+    _focusDuration = t.focusDuration;
+    _energy = t.energy;
 
     // Lógica de data
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final tomorrow = today.add(const Duration(days: 1));
 
-    if (t.dueDate == null) {
-      _dateOption = 2; // Ou outra lógica para sem data
-      _selectedCustomDate = null;
+    final d = DateTime(
+      t.scheduledFor.year,
+      t.scheduledFor.month,
+      t.scheduledFor.day,
+    );
+    if (d == today) {
+      _dateOption = 0;
+      _selectedCustomDate = t.scheduledFor;
+    } else if (d == tomorrow) {
+      _dateOption = 1;
+      _selectedCustomDate = t.scheduledFor;
     } else {
-      final d = DateTime(t.dueDate!.year, t.dueDate!.month, t.dueDate!.day);
-      if (d == today) {
-        _dateOption = 0;
-        _selectedCustomDate = t.dueDate;
-      } else if (d == tomorrow) {
-        _dateOption = 1;
-        _selectedCustomDate = t.dueDate;
-      } else {
-        _dateOption = 2;
-        _selectedCustomDate = t.dueDate;
-      }
+      _dateOption = 2;
+      _selectedCustomDate = t.scheduledFor;
     }
   }
 
@@ -91,13 +90,13 @@ class _EditTaskPageState extends State<EditTaskPage> {
 
     Navigator.pop(context, {
       'title': _titleCtrl.text.trim(),
-      'steps': _stepCtrls
+      'subtasks': _stepCtrls
           .map((c) => c.text.trim())
           .where((s) => s.isNotEmpty)
           .toList(),
-      'estimate': _estimateMinutes,
+      'focusDuration': _focusDuration,
       'energy': _energy,
-      'dueDate': dueDate,
+      'scheduledFor': dueDate,
     });
   }
 
@@ -375,32 +374,37 @@ class _EditTaskPageState extends State<EditTaskPage> {
                   Expanded(
                     child: _SelectableButton(
                       label: '15m',
-                      isSelected: _estimateMinutes == 15,
-                      onTap: () => setState(() => _estimateMinutes = 15),
+                      isSelected: _focusDuration == FocusDuration.short,
+                      onTap: () =>
+                          setState(() => _focusDuration = FocusDuration.short),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: _SelectableButton(
                       label: '30m',
-                      isSelected: _estimateMinutes == 30,
-                      onTap: () => setState(() => _estimateMinutes = 30),
+                      isSelected: _focusDuration == FocusDuration.medium,
+                      onTap: () =>
+                          setState(() => _focusDuration = FocusDuration.medium),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: _SelectableButton(
                       label: '45m',
-                      isSelected: _estimateMinutes == 45,
-                      onTap: () => setState(() => _estimateMinutes = 45),
+                      isSelected: _focusDuration == FocusDuration.long,
+                      onTap: () =>
+                          setState(() => _focusDuration = FocusDuration.long),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: _SelectableButton(
                       label: '60m',
-                      isSelected: _estimateMinutes == 60,
-                      onTap: () => setState(() => _estimateMinutes = 60),
+                      isSelected: _focusDuration == FocusDuration.extraLong,
+                      onTap: () => setState(
+                        () => _focusDuration = FocusDuration.extraLong,
+                      ),
                     ),
                   ),
                 ],

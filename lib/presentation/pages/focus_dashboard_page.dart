@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mindease/core/constants/brand.dart';
@@ -50,10 +51,10 @@ class _FocusDashboardPageState extends State<FocusDashboardPage> {
     try {
       // Prioritize in-progress
       try {
-        return tasks.firstWhere((t) => t.inProgress && !t.done);
+        return tasks.firstWhere((t) => t.inProgress && !t.completed);
       } catch (_) {
         // Then pending
-        return tasks.firstWhere((t) => !t.done);
+        return tasks.firstWhere((t) => !t.completed);
       }
     } catch (_) {
       return null; // All done or empty
@@ -85,10 +86,10 @@ class _FocusDashboardPageState extends State<FocusDashboardPage> {
     if (result != null && result is Map) {
       final updated = task.copyWith(
         title: result['title'],
-        checklist: (result['steps'] as List?)?.cast<String>() ?? [],
-        durationMinutes: result['estimate'],
+        subtasks: (result['subtasks'] as List?)?.cast<String>() ?? [],
+        focusDuration: result['focusDuration'],
         energy: result['energy'],
-        dueDate: result['dueDate'],
+        scheduledFor: result['scheduledFor'],
       );
 
       context.read<TasksBloc>().add(UpdateTask(updated));
@@ -138,12 +139,14 @@ class _FocusDashboardPageState extends State<FocusDashboardPage> {
 
     if (result != null && result is Map && mounted) {
       final newTask = Task(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: FirebaseFirestore.instance.collection('tasks').doc().id,
+        userId: '', // Bloc will fill this
         title: result['title'],
-        checklist: (result['steps'] as List?)?.cast<String>() ?? [],
-        durationMinutes: result['estimate'],
+        subtasks: (result['subtasks'] as List?)?.cast<String>() ?? [],
+        focusDuration: result['focusDuration'],
         energy: result['energy'],
-        dueDate: result['dueDate'],
+        scheduledFor: result['scheduledFor'],
+        createdAt: DateTime.now(),
       );
 
       context.read<TasksBloc>().add(AddTask(newTask));
@@ -237,17 +240,15 @@ class _FocusDashboardPageState extends State<FocusDashboardPage> {
             if (energyComparison != 0) return energyComparison;
           }
 
-          if (a.dueDate == null && b.dueDate == null) return 0;
-          if (a.dueDate == null) return 1;
-          if (b.dueDate == null) return -1;
-          return a.dueDate!.compareTo(b.dueDate!);
+          // Task.scheduledFor is required, so no null check needed
+          return a.scheduledFor.compareTo(b.scheduledFor);
         });
 
         final currentFocusTask = _getTask(allTasks);
 
         // Filter out the focus task from the list below and only show pending/in-progress
         final otherTasks = allTasks
-            .where((t) => t.id != currentFocusTask?.id && !t.done)
+            .where((t) => t.id != currentFocusTask?.id && !t.completed)
             .take(2)
             .toList();
 
@@ -346,7 +347,7 @@ class _Header extends StatelessWidget {
     return FutureBuilder<User?>(
       future: sl<AuthRepository>().getCurrentUser(),
       builder: (context, snapshot) {
-        final userName = snapshot.data?.name ?? '';
+        final userName = snapshot.data?.fullName ?? '';
         final firstName = userName.trim().isNotEmpty
             ? userName.trim().split(' ').first
             : 'Visitante';
@@ -512,9 +513,9 @@ class _FocusCard extends StatelessWidget {
                   ),
                 ],
                 if (density == InfoDensity.detalhada &&
-                    task!.checklist.isNotEmpty) ...[
+                    task!.subtasks.isNotEmpty) ...[
                   const SizedBox(height: 16),
-                  ...task!.checklist
+                  ...task!.subtasks
                       .take(3)
                       .map(
                         (step) => Padding(
@@ -542,11 +543,11 @@ class _FocusCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                  if (task!.checklist.length > 3)
+                  if (task!.subtasks.length > 3)
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
-                        '+ ${task!.checklist.length - 3} itens',
+                        '+ ${task!.subtasks.length - 3} itens',
                         style: const TextStyle(
                           color: Brand.primary,
                           fontSize: 12,
@@ -681,13 +682,12 @@ class _TaskItem extends StatelessWidget {
         energyLabel = 'Energia: Média';
         break;
       case TaskEnergy.low:
-      default:
         energyColor = Brand.energyLowBg;
         energyTextColor = Brand.energyLowText;
         energyLabel = 'Energia: Baixa';
         break;
     }
-    final duration = '${task.durationMinutes ?? 0}m';
+    final duration = '${task.focusDuration.minutes}m';
 
     return GestureDetector(
       onTap: onStartFocus,

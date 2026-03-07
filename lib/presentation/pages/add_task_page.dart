@@ -6,10 +6,7 @@ import 'package:mindease/domain/entities/task.dart';
 class AddTaskPage extends StatefulWidget {
   final int initialDateOption;
 
-  const AddTaskPage({
-    super.key,
-    this.initialDateOption = 0,
-  });
+  const AddTaskPage({super.key, this.initialDateOption = 0});
 
   @override
   State<AddTaskPage> createState() => _AddTaskPageState();
@@ -19,7 +16,7 @@ class _AddTaskPageState extends State<AddTaskPage> {
   final _titleCtrl = TextEditingController();
   final _stepCtrls = List.generate(3, (_) => TextEditingController());
 
-  int _estimateMinutes = 30;
+  FocusDuration _focusDuration = FocusDuration.medium;
   TaskEnergy _energy = TaskEnergy.medium;
 
   late int _dateOption;
@@ -61,13 +58,13 @@ class _AddTaskPageState extends State<AddTaskPage> {
 
     Navigator.pop(context, {
       'title': _titleCtrl.text.trim(),
-      'steps': _stepCtrls
+      'subtasks': _stepCtrls
           .map((c) => c.text.trim())
           .where((s) => s.isNotEmpty)
           .toList(),
-      'estimate': _estimateMinutes,
+      'focusDuration': _focusDuration,
       'energy': _energy,
-      'dueDate': dueDate,
+      'scheduledFor': dueDate,
     });
   }
 
@@ -356,32 +353,36 @@ class _AddTaskPageState extends State<AddTaskPage> {
                   Expanded(
                     child: _SelectableButton(
                       label: '15m',
-                      isSelected: _estimateMinutes == 15,
-                      onTap: () => setState(() => _estimateMinutes = 15),
+                      isSelected: _focusDuration == FocusDuration.short,
+                      onTap: () =>
+                          setState(() => _focusDuration = FocusDuration.short),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: _SelectableButton(
                       label: '30m',
-                      isSelected: _estimateMinutes == 30,
-                      onTap: () => setState(() => _estimateMinutes = 30),
+                      isSelected: _focusDuration == FocusDuration.medium,
+                      onTap: () =>
+                          setState(() => _focusDuration = FocusDuration.medium),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: _SelectableButton(
                       label: '45m',
-                      isSelected: _estimateMinutes == 45,
-                      onTap: () => setState(() => _estimateMinutes = 45),
+                      isSelected: _focusDuration == FocusDuration.long,
+                      onTap: () =>
+                          setState(() => _focusDuration = FocusDuration.long),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: _SelectableButton(
                       label: '60m',
-                      isSelected: _estimateMinutes == 60,
-                      onTap: () => setState(() => _estimateMinutes = 60),
+                      isSelected: _focusDuration == FocusDuration.extraLong,
+                      onTap: () =>
+                          setState(() => _focusDuration = FocusDuration.extraLong),
                     ),
                   ),
                 ],

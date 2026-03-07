@@ -338,7 +338,7 @@ class _FocusSettingsPageState extends State<FocusSettingsPage> {
           );
 
           if (confirm == true) {
-            await sl<AuthRepository>().logout();
+            await sl<AuthRepository>().signOut();
 
             if (mounted) {
               Navigator.of(context).pushAndRemoveUntil(

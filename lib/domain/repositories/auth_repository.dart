@@ -1,8 +1,9 @@
-import 'package:mindease/domain/entities/user.dart';
+import '../entities/user.dart';
 
 abstract class AuthRepository {
-  Future<User> login(String email, String password);
-  Future<User> register(String name, String email, String password);
-  Future<void> logout();
+  Future<User?> signInWithEmail(String email, String password);
+  Future<User?> signUpWithEmail(String email, String password, String fullName);
+  Future<void> signOut();
   Future<User?> getCurrentUser();
+  Stream<User?> get authStateChanges;
 }

@@ -1,50 +1,38 @@
-import 'package:mindease/data/datasources/auth_local_datasource.dart';
-import 'package:mindease/domain/entities/user.dart';
-import 'package:mindease/domain/repositories/auth_repository.dart';
+import '../../domain/entities/user.dart';
+import '../../domain/repositories/auth_repository.dart';
+import '../datasources/auth_remote_datasource.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  final AuthLocalDataSource _dataSource;
+  final AuthRemoteDataSource remoteDataSource;
 
-  AuthRepositoryImpl(this._dataSource);
+  AuthRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<User> login(String email, String password) async {
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (email.isNotEmpty && password.length >= 6) {
-      final user = User(id: '1', email: email, name: email.split('@').first);
-      await _dataSource.saveUser(user);
-      return user;
-    } else {
-      throw Exception('Credenciais inválidas');
-    }
+  Future<User?> signInWithEmail(String email, String password) async {
+    return await remoteDataSource.signInWithEmail(email, password);
   }
 
   @override
-  Future<User> register(String name, String email, String password) async {
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (name.isNotEmpty && email.isNotEmpty && password.length >= 6) {
-      final user = User(
-        id: DateTime.now().toString(),
-        email: email,
-        name: name,
-      );
-      await _dataSource.saveUser(user);
-      return user;
-    } else {
-      throw Exception('Dados inválidos para cadastro');
-    }
+  Future<User?> signUpWithEmail(
+    String email,
+    String password,
+    String fullName,
+  ) async {
+    return await remoteDataSource.signUpWithEmail(email, password, fullName);
   }
 
   @override
-  Future<void> logout() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    await _dataSource.clearUser();
+  Future<void> signOut() async {
+    await remoteDataSource.signOut();
   }
 
   @override
   Future<User?> getCurrentUser() async {
-    return _dataSource.getUser();
+    return await remoteDataSource.getCurrentUser();
+  }
+
+  @override
+  Stream<User?> get authStateChanges {
+    return remoteDataSource.authStateChanges;
   }
 }
