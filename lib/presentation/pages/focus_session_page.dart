@@ -4,6 +4,8 @@ import 'package:mindease/core/constants/brand.dart';
 import 'package:mindease/domain/entities/task.dart';
 import 'package:mindease/presentation/controllers/pomodoro_cubit.dart';
 
+import 'package:mindease/presentation/controllers/tasks_bloc.dart';
+
 class FocusSessionPage extends StatefulWidget {
   final bool startInRestMode;
   final Task? task;
@@ -298,7 +300,7 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
                       color: Brand.textMain,
                     ),
                     label: Text(
-                      state.running ? 'Pausar' : 'Continuar',
+                      state.running ? 'Pausar' : 'Começar',
                       style: TextStyle(
                         color: Brand.textMain,
                         fontWeight: FontWeight.bold,
@@ -319,6 +321,22 @@ class _FocusSessionPageState extends State<FocusSessionPage> {
                   child: ElevatedButton.icon(
                     onPressed: () {
                       context.read<PomodoroCubit>().reset();
+                      if (widget.task != null) {
+                        context.read<TasksBloc>().add(
+                          MoveTask(
+                            widget.task!.id,
+                            inProgress: false,
+                            completed: true,
+                          ),
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Tarefa concluída!'),
+                            backgroundColor: Brand.success,
+                          ),
+                        );
+                      }
+                      Navigator.of(context).pop();
                     },
                     icon: const Icon(
                       Icons.check_circle_outline_rounded,
