@@ -20,13 +20,35 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: ["javascript-typescript"]
+        language: ["java-kotlin"]
         # CodeQL supports [ 'cpp', 'csharp', 'go', 'java-kotlin', 'javascript-typescript', 'python', 'ruby', 'swift' ]
         # Learn more about CodeQL language support at https://aka.ms/codeql-docs/language-support
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      # Setup Java (Required for Android build)
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      # Setup Flutter (Required for Android build deps)
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.35.1"
+          channel: "stable"
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Create local.properties for Android build
+      - name: Create local.properties
+        run: echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
 
       # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL
