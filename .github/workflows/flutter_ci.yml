@@ -119,6 +119,10 @@ jobs:
           key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: pub-${{ runner.os }}-
 
+      # Create .env file
+      - name: Create .env file
+        run: echo "API_KEY=dummy" > .env
+
       # Dependencies
       - run: flutter pub get
 
