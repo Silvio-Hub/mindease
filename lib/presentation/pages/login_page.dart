@@ -83,20 +83,21 @@ class _LoginViewState extends State<_LoginView> {
 
   @override
   Widget build(BuildContext context) {
+    final brand = Brand.of(context);
     return Scaffold(
-      backgroundColor: Brand.backgroundAlt,
+      backgroundColor: brand.backgroundAlt,
       appBar: AppBar(
-        backgroundColor: Brand.transparent,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         title: Row(
           children: [
-            const Icon(Icons.spa, color: Brand.primary),
+            Icon(Icons.spa, color: brand.primary),
             const SizedBox(width: 8),
             Text(
               'MindEase Focus',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: Brand.textMain,
+                color: brand.textMain,
               ),
             ),
           ],
@@ -108,7 +109,7 @@ class _LoginViewState extends State<_LoginView> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
-                backgroundColor: Brand.error,
+                backgroundColor: brand.error,
               ),
             );
           } else if (state is LoginSuccess) {
@@ -125,16 +126,16 @@ class _LoginViewState extends State<_LoginView> {
               children: [
                 Card(
                   elevation: 0,
-                  color: Brand.transparent,
+                  color: Colors.transparent,
                   child: Container(
                     constraints: const BoxConstraints(maxWidth: 400),
                     padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: Brand.surface,
+                      color: brand.surface,
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Brand.shadow,
+                          color: brand.shadow,
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
@@ -152,7 +153,7 @@ class _LoginViewState extends State<_LoginView> {
                             style: Theme.of(context).textTheme.headlineSmall
                                 ?.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  color: Brand.textMain,
+                                  color: brand.textMain,
                                 ),
                           ),
                           const SizedBox(height: 8),
@@ -160,7 +161,7 @@ class _LoginViewState extends State<_LoginView> {
                             'Acesse sua conta para continuar focado.',
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: Brand.textSecondary),
+                                ?.copyWith(color: brand.textSecondary),
                           ),
                           const SizedBox(height: 32),
 
@@ -172,7 +173,7 @@ class _LoginViewState extends State<_LoginView> {
                                 style: Theme.of(context).textTheme.labelMedium
                                     ?.copyWith(
                                       fontWeight: FontWeight.bold,
-                                      color: Brand.textMain,
+                                      color: brand.textMain,
                                     ),
                               ),
                               const SizedBox(height: 8),
@@ -193,34 +194,34 @@ class _LoginViewState extends State<_LoginView> {
                                   decoration: InputDecoration(
                                     hintText: 'Digite seu e-mail',
                                     filled: true,
-                                    fillColor: Brand.backgroundAlt,
+                                    fillColor: brand.backgroundAlt,
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
                                       borderSide: BorderSide.none,
                                     ),
                                     errorBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
-                                      borderSide: const BorderSide(
-                                        color: Brand.error,
+                                      borderSide: BorderSide(
+                                        color: brand.error,
                                       ),
                                     ),
                                     focusedErrorBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
-                                      borderSide: const BorderSide(
-                                        color: Brand.error,
+                                      borderSide: BorderSide(
+                                        color: brand.error,
                                       ),
                                     ),
-                                    errorStyle: const TextStyle(
-                                      color: Brand.error,
+                                    errorStyle: TextStyle(
+                                      color: brand.error,
                                     ),
                                     contentPadding: const EdgeInsets.symmetric(
                                       horizontal: 16,
                                       vertical: 16,
                                     ),
                                     suffixIcon: _emailTouched && !_isEmailValid
-                                        ? const Icon(
+                                        ? Icon(
                                             Icons.error_outline,
-                                            color: Brand.error,
+                                            color: brand.error,
                                           )
                                         : null,
                                   ),
@@ -249,7 +250,7 @@ class _LoginViewState extends State<_LoginView> {
                                 style: Theme.of(context).textTheme.labelMedium
                                     ?.copyWith(
                                       fontWeight: FontWeight.bold,
-                                      color: Brand.textMain,
+                                      color: brand.textMain,
                                     ),
                               ),
                               const SizedBox(height: 8),
@@ -270,25 +271,25 @@ class _LoginViewState extends State<_LoginView> {
                                   decoration: InputDecoration(
                                     hintText: 'Digite sua senha',
                                     filled: true,
-                                    fillColor: Brand.backgroundAlt,
+                                    fillColor: brand.backgroundAlt,
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
                                       borderSide: BorderSide.none,
                                     ),
                                     errorBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
-                                      borderSide: const BorderSide(
-                                        color: Brand.error,
+                                      borderSide: BorderSide(
+                                        color: brand.error,
                                       ),
                                     ),
                                     focusedErrorBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
-                                      borderSide: const BorderSide(
-                                        color: Brand.error,
+                                      borderSide: BorderSide(
+                                        color: brand.error,
                                       ),
                                     ),
-                                    errorStyle: const TextStyle(
-                                      color: Brand.error,
+                                    errorStyle: TextStyle(
+                                      color: brand.error,
                                     ),
                                     contentPadding: const EdgeInsets.symmetric(
                                       horizontal: 16,
@@ -299,7 +300,7 @@ class _LoginViewState extends State<_LoginView> {
                                         _isPasswordVisible
                                             ? Icons.visibility_outlined
                                             : Icons.visibility_off_outlined,
-                                        color: Brand.textSecondary,
+                                        color: brand.textSecondary,
                                       ),
                                       onPressed: () {
                                         setState(() {
@@ -338,7 +339,7 @@ class _LoginViewState extends State<_LoginView> {
                                 'Esqueceu a senha?',
                                 style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(
-                                      color: Brand.primary,
+                                      color: brand.primary,
                                       fontWeight: FontWeight.w600,
                                     ),
                               ),
@@ -360,8 +361,8 @@ class _LoginViewState extends State<_LoginView> {
                                       ? _onLoginPressed
                                       : null,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Brand.primary,
-                                    disabledBackgroundColor: Brand.primary
+                                    backgroundColor: brand.primary,
+                                    disabledBackgroundColor: brand.primary
                                         .withValues(alpha: 0.5),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
@@ -373,7 +374,7 @@ class _LoginViewState extends State<_LoginView> {
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
-                                      color: Brand.textWhite.withValues(
+                                      color: brand.textWhite.withValues(
                                         alpha: _isFormValid ? 1.0 : 0.7,
                                       ),
                                     ),
@@ -394,7 +395,7 @@ class _LoginViewState extends State<_LoginView> {
                                 Text(
                                   'Não tem uma conta? ',
                                   style: Theme.of(context).textTheme.bodyMedium
-                                      ?.copyWith(color: Brand.textSecondary),
+                                      ?.copyWith(color: brand.textSecondary),
                                 ),
                                 GestureDetector(
                                   onTap: () {
@@ -410,7 +411,7 @@ class _LoginViewState extends State<_LoginView> {
                                         .textTheme
                                         .bodyMedium
                                         ?.copyWith(
-                                          color: Brand.tertiary,
+                                          color: brand.tertiary,
                                           fontWeight: FontWeight.bold,
                                           decoration: TextDecoration.underline,
                                         ),
@@ -429,7 +430,7 @@ class _LoginViewState extends State<_LoginView> {
                   '© 2026 MindEase Focus. Projetado para sua tranquilidade.',
                   style: Theme.of(
                     context,
-                  ).textTheme.bodySmall?.copyWith(color: Brand.textSecondary),
+                  ).textTheme.bodySmall?.copyWith(color: brand.textSecondary),
                 ),
               ],
             ),

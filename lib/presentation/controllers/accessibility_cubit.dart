@@ -15,6 +15,7 @@ class AccessibilityState extends Equatable {
   final bool animationsEnabled;
   final TaskEnergy? energyLevel;
   final InfoDensity? infoDensity;
+  final AppThemeMode themeMode;
 
   const AccessibilityState({
     required this.focusMode,
@@ -25,6 +26,7 @@ class AccessibilityState extends Equatable {
     required this.animationsEnabled,
     this.energyLevel,
     this.infoDensity,
+    this.themeMode = AppThemeMode.system,
   });
 
   AccessibilityState copyWith({
@@ -36,6 +38,7 @@ class AccessibilityState extends Equatable {
     bool? animationsEnabled,
     TaskEnergy? energyLevel,
     InfoDensity? infoDensity,
+    AppThemeMode? themeMode,
   }) {
     return AccessibilityState(
       focusMode: focusMode ?? this.focusMode,
@@ -46,6 +49,7 @@ class AccessibilityState extends Equatable {
       animationsEnabled: animationsEnabled ?? this.animationsEnabled,
       energyLevel: energyLevel ?? this.energyLevel,
       infoDensity: infoDensity ?? this.infoDensity,
+      themeMode: themeMode ?? this.themeMode,
     );
   }
 
@@ -59,6 +63,7 @@ class AccessibilityState extends Equatable {
     animationsEnabled,
     energyLevel,
     infoDensity,
+    themeMode,
   ];
 }
 
@@ -79,6 +84,7 @@ class AccessibilityCubit extends Cubit<AccessibilityState> {
            spacingScale: 1.0,
            summaryMode: true,
            animationsEnabled: true,
+           themeMode: AppThemeMode.system,
          ),
        );
 
@@ -94,6 +100,7 @@ class AccessibilityCubit extends Cubit<AccessibilityState> {
         animationsEnabled: prefs.animationsEnabled,
         energyLevel: prefs.energyLevel,
         infoDensity: prefs.infoDensity,
+        themeMode: prefs.themeMode,
       ),
     );
   }
@@ -101,6 +108,22 @@ class AccessibilityCubit extends Cubit<AccessibilityState> {
   Future<void> setHighContrast(bool on) async {
     await updateContrast(on);
     emit(state.copyWith(highContrast: on));
+  }
+
+  Future<void> setThemeMode(AppThemeMode mode) async {
+    final updated = UserPreferences(
+      focusMode: state.focusMode,
+      highContrast: state.highContrast,
+      fontScale: state.fontScale,
+      spacingScale: state.spacingScale,
+      summaryMode: state.summaryMode,
+      animationsEnabled: state.animationsEnabled,
+      energyLevel: state.energyLevel,
+      infoDensity: state.infoDensity,
+      themeMode: mode,
+    );
+    await savePreferences(updated);
+    emit(state.copyWith(themeMode: mode));
   }
 
   Future<void> setFocusMode(bool on) async {
@@ -113,6 +136,7 @@ class AccessibilityCubit extends Cubit<AccessibilityState> {
       animationsEnabled: state.animationsEnabled,
       energyLevel: state.energyLevel,
       infoDensity: state.infoDensity,
+      themeMode: state.themeMode,
     );
     await savePreferences(updated);
     emit(state.copyWith(focusMode: on));
@@ -128,6 +152,7 @@ class AccessibilityCubit extends Cubit<AccessibilityState> {
       animationsEnabled: state.animationsEnabled,
       energyLevel: level,
       infoDensity: state.infoDensity,
+      themeMode: state.themeMode,
     );
     await savePreferences(updated);
     emit(state.copyWith(energyLevel: level));
@@ -137,6 +162,7 @@ class AccessibilityCubit extends Cubit<AccessibilityState> {
     bool? focusMode,
     TaskEnergy? energyLevel,
     InfoDensity? infoDensity,
+    AppThemeMode? themeMode,
   }) async {
     final nextFocusMode = focusMode ?? state.focusMode;
     // Note: this logic assumes we don't want to set energyLevel to null explicitly via this method if it was not null.
@@ -144,6 +170,7 @@ class AccessibilityCubit extends Cubit<AccessibilityState> {
     // This is fine for the current use case where we always have a value selected in UI.
     final nextEnergyLevel = energyLevel ?? state.energyLevel;
     final nextInfoDensity = infoDensity ?? state.infoDensity;
+    final nextThemeMode = themeMode ?? state.themeMode;
 
     final updated = UserPreferences(
       focusMode: nextFocusMode,
@@ -154,6 +181,7 @@ class AccessibilityCubit extends Cubit<AccessibilityState> {
       animationsEnabled: state.animationsEnabled,
       energyLevel: nextEnergyLevel,
       infoDensity: nextInfoDensity,
+      themeMode: nextThemeMode,
     );
     await savePreferences(updated);
     emit(
@@ -161,6 +189,7 @@ class AccessibilityCubit extends Cubit<AccessibilityState> {
         focusMode: nextFocusMode,
         energyLevel: nextEnergyLevel,
         infoDensity: nextInfoDensity,
+        themeMode: nextThemeMode,
       ),
     );
   }

@@ -95,6 +95,7 @@ class _FocusDashboardPageState extends State<FocusDashboardPage> {
   }
 
   void _onDeleteFocusTask(Task task) {
+    final brand = Brand.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -118,7 +119,7 @@ class _FocusDashboardPageState extends State<FocusDashboardPage> {
                 const SnackBar(content: Text('Tarefa em foco excluída!')),
               );
             },
-            child: const Text('Excluir', style: TextStyle(color: Brand.error)),
+            child: Text('Excluir', style: TextStyle(color: brand.error)),
           ),
         ],
       ),
@@ -161,6 +162,7 @@ class _FocusDashboardPageState extends State<FocusDashboardPage> {
   }
 
   void _onDeleteTaskInList(Task task) {
+    final brand = Brand.of(context);
     // Use generic delete but handle UI feedback appropriately
     showDialog(
       context: context,
@@ -180,7 +182,7 @@ class _FocusDashboardPageState extends State<FocusDashboardPage> {
                 const SnackBar(content: Text('Tarefa excluída com sucesso!')),
               );
             },
-            child: const Text('Excluir', style: TextStyle(color: Brand.error)),
+            child: Text('Excluir', style: TextStyle(color: brand.error)),
           ),
         ],
       ),
@@ -218,6 +220,7 @@ class _FocusDashboardPageState extends State<FocusDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    final brand = Brand.of(context);
     return BlocBuilder<TasksBloc, TasksState>(
       builder: (context, state) {
         final accessibilityState = context.watch<AccessibilityCubit>().state;
@@ -272,7 +275,7 @@ class _FocusDashboardPageState extends State<FocusDashboardPage> {
             .toList();
 
         return Scaffold(
-          backgroundColor: Brand.background,
+          backgroundColor: brand.background,
           body: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(
@@ -298,20 +301,20 @@ class _FocusDashboardPageState extends State<FocusDashboardPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'Próximas Tarefas',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Brand.textMain,
+                          color: brand.textMain,
                         ),
                       ),
                       TextButton(
                         onPressed: widget.onSeeAllTasks,
-                        child: const Text(
+                        child: Text(
                           'Ver todas',
                           style: TextStyle(
-                            color: Brand.primary,
+                            color: brand.primary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -321,12 +324,12 @@ class _FocusDashboardPageState extends State<FocusDashboardPage> {
                   const SizedBox(height: 12),
 
                   if (otherTasks.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.all(24.0),
+                    Padding(
+                      padding: const EdgeInsets.all(24.0),
                       child: Center(
                         child: Text(
                           'Nenhuma tarefa pendente.',
-                          style: TextStyle(color: Brand.textSecondary),
+                          style: TextStyle(color: brand.textSecondary),
                         ),
                       ),
                     )
@@ -363,6 +366,7 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brand = Brand.of(context);
     return FutureBuilder<User?>(
       future: sl<AuthRepository>().getCurrentUser(),
       builder: (context, snapshot) {
@@ -376,16 +380,16 @@ class _Header extends StatelessWidget {
           children: [
             Text(
               'Olá $firstName, como você está hoje?',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Brand.textMain,
+                color: brand.textMain,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               'Aqui está o seu foco para este momento.',
-              style: TextStyle(fontSize: 16, color: Brand.textSecondary),
+              style: TextStyle(fontSize: 16, color: brand.textSecondary),
             ),
           ],
         );
@@ -413,33 +417,34 @@ class _FocusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brand = Brand.of(context);
     if (task == null) {
       return Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Brand.surface,
+          color: brand.surface,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Brand.border),
+          border: Border.all(color: brand.border),
         ),
         child: Column(
           children: [
-            const Icon(
+            Icon(
               Icons.check_circle_outline,
               size: 48,
-              color: Brand.textSecondary,
+              color: brand.textSecondary,
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Você não tem nenhuma tarefa em foco no momento.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Brand.textSecondary),
+              style: TextStyle(color: brand.textSecondary),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: onAdd,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Brand.primary,
-                foregroundColor: Brand.textWhite,
+                backgroundColor: brand.primary,
+                foregroundColor: brand.textWhite,
                 padding: const EdgeInsets.symmetric(
                   vertical: 16,
                   horizontal: 24,
@@ -461,11 +466,11 @@ class _FocusCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Brand.surface,
+        color: brand.surface,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Brand.textMain.withValues(alpha: 0.05),
+            color: brand.textMain.withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -477,29 +482,29 @@ class _FocusCard extends StatelessWidget {
         children: [
           if (density != InfoDensity.simples)
             Container(
-              color: Brand.secondary,
+              color: brand.secondary,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Brand.surface.withValues(alpha: 0.2),
+                      color: brand.surface.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.adjust_rounded,
-                      color: Brand.textWhite,
+                      color: brand.textWhite,
                       size: 20,
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Text(
+                  Text(
                     'EM FOCO AGORA',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: Brand.textWhite,
+                      color: brand.textWhite,
                       letterSpacing: 1.2,
                     ),
                   ),
@@ -513,10 +518,10 @@ class _FocusCard extends StatelessWidget {
               children: [
                 Text(
                   task!.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: Brand.textMain,
+                    color: brand.textMain,
                     height: 1.2,
                   ),
                 ),
@@ -526,7 +531,7 @@ class _FocusCard extends StatelessWidget {
                     'De acordo com o seu painel cognitivo, esta é a tarefa que mais merece sua atenção agora.',
                     style: TextStyle(
                       fontSize: 15,
-                      color: Brand.textSecondary,
+                      color: brand.textSecondary,
                       height: 1.5,
                     ),
                   ),
@@ -538,7 +543,7 @@ class _FocusCard extends StatelessWidget {
                     task!.description,
                     style: TextStyle(
                       fontSize: 14,
-                      color: Brand.textSecondary,
+                      color: brand.textSecondary,
                       height: 1.4,
                     ),
                     maxLines: 3,
@@ -555,17 +560,17 @@ class _FocusCard extends StatelessWidget {
                           padding: const EdgeInsets.only(bottom: 8),
                           child: Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.check_circle_outline,
                                 size: 16,
-                                color: Brand.textSecondary,
+                                color: brand.textSecondary,
                               ),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   step,
-                                  style: const TextStyle(
-                                    color: Brand.textSecondary,
+                                  style: TextStyle(
+                                    color: brand.textSecondary,
                                     fontSize: 14,
                                   ),
                                   maxLines: 1,
@@ -581,8 +586,8 @@ class _FocusCard extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
                         '+ ${task!.subtasks.length - 3} itens',
-                        style: const TextStyle(
-                          color: Brand.primary,
+                        style: TextStyle(
+                          color: brand.primary,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
@@ -596,8 +601,8 @@ class _FocusCard extends StatelessWidget {
                       child: ElevatedButton.icon(
                         onPressed: onStart,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Brand.secondary,
-                          foregroundColor: Brand.textWhite,
+                          backgroundColor: brand.secondary,
+                          foregroundColor: brand.textWhite,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -617,13 +622,13 @@ class _FocusCard extends StatelessWidget {
                     const SizedBox(width: 12),
                     Container(
                       decoration: BoxDecoration(
-                        border: Border.all(color: Brand.border),
+                        border: Border.all(color: brand.border),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: PopupMenuButton<String>(
                         icon: Icon(
                           Icons.more_horiz,
-                          color: Brand.textSecondary,
+                          color: brand.textSecondary,
                         ),
                         tooltip: 'Mais opções',
                         shape: RoundedRectangleBorder(
@@ -637,33 +642,33 @@ class _FocusCard extends StatelessWidget {
                           }
                         },
                         itemBuilder: (context) => [
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'edit',
                             child: Row(
                               children: [
                                 Icon(
                                   Icons.edit_outlined,
                                   size: 20,
-                                  color: Brand.textSecondary,
+                                  color: brand.textSecondary,
                                 ),
-                                SizedBox(width: 12),
-                                Text('Editar detalhes'),
+                                const SizedBox(width: 12),
+                                const Text('Editar detalhes'),
                               ],
                             ),
                           ),
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'delete',
                             child: Row(
                               children: [
                                 Icon(
                                   Icons.delete_outline,
                                   size: 20,
-                                  color: Brand.error,
+                                  color: brand.error,
                                 ),
-                                SizedBox(width: 12),
+                                const SizedBox(width: 12),
                                 Text(
                                   'Excluir tarefa',
-                                  style: TextStyle(color: Brand.error),
+                                  style: TextStyle(color: brand.error),
                                 ),
                               ],
                             ),
@@ -699,24 +704,25 @@ class _TaskItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brand = Brand.of(context);
     Color energyColor;
     Color energyTextColor;
     String energyLabel;
 
     switch (task.energy) {
       case TaskEnergy.high:
-        energyColor = Brand.energyHighBg;
-        energyTextColor = Brand.energyHighText;
+        energyColor = brand.energyHighBg;
+        energyTextColor = brand.energyHighText;
         energyLabel = 'Energia: Alta';
         break;
       case TaskEnergy.medium:
-        energyColor = Brand.energyMediumBg;
-        energyTextColor = Brand.energyMediumText;
+        energyColor = brand.energyMediumBg;
+        energyTextColor = brand.energyMediumText;
         energyLabel = 'Energia: Média';
         break;
       case TaskEnergy.low:
-        energyColor = Brand.energyLowBg;
-        energyTextColor = Brand.energyLowText;
+        energyColor = brand.energyLowBg;
+        energyTextColor = brand.energyLowText;
         energyLabel = 'Energia: Baixa';
         break;
     }
@@ -726,11 +732,11 @@ class _TaskItem extends StatelessWidget {
       onTap: onStartFocus,
       child: Container(
         decoration: BoxDecoration(
-          color: Brand.surface,
+          color: brand.surface,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Brand.textMain.withValues(alpha: 0.03),
+              color: brand.textMain.withValues(alpha: 0.03),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -743,7 +749,7 @@ class _TaskItem extends StatelessWidget {
               width: 24,
               height: 24,
               decoration: BoxDecoration(
-                border: Border.all(color: Brand.textLight, width: 2),
+                border: Border.all(color: brand.textLight, width: 2),
                 borderRadius: BorderRadius.circular(6),
               ),
             ),
@@ -754,10 +760,10 @@ class _TaskItem extends StatelessWidget {
                 children: [
                   Text(
                     task.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Brand.textMain,
+                      color: brand.textMain,
                     ),
                   ),
                   if (density != InfoDensity.simples) ...[
@@ -767,14 +773,14 @@ class _TaskItem extends StatelessWidget {
                         Icon(
                           Icons.timer_outlined,
                           size: 16,
-                          color: Brand.textSecondary,
+                          color: brand.textSecondary,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           duration,
                           style: TextStyle(
                             fontSize: 14,
-                            color: Brand.textSecondary,
+                            color: brand.textSecondary,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -824,8 +830,8 @@ class _TaskItem extends StatelessWidget {
                                 Container(
                                   width: 6,
                                   height: 6,
-                                  decoration: const BoxDecoration(
-                                    color: Brand.textSecondary,
+                                  decoration: BoxDecoration(
+                                    color: brand.textSecondary,
                                     shape: BoxShape.circle,
                                   ),
                                 ),
@@ -833,8 +839,8 @@ class _TaskItem extends StatelessWidget {
                                 Expanded(
                                   child: Text(
                                     step,
-                                    style: const TextStyle(
-                                      color: Brand.textSecondary,
+                                    style: TextStyle(
+                                      color: brand.textSecondary,
                                       fontSize: 13,
                                     ),
                                     maxLines: 1,
@@ -850,8 +856,8 @@ class _TaskItem extends StatelessWidget {
                         padding: const EdgeInsets.only(top: 4),
                         child: Text(
                           '+ ${task.subtasks.length - 2} itens',
-                          style: const TextStyle(
-                            color: Brand.primary,
+                          style: TextStyle(
+                            color: brand.primary,
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                           ),
@@ -863,12 +869,12 @@ class _TaskItem extends StatelessWidget {
             ),
             IconButton(
               icon: const Icon(Icons.arrow_upward, size: 20),
-              color: Brand.primary,
+              color: brand.primary,
               tooltip: 'Promover para Foco',
               onPressed: onStartFocus,
             ),
             PopupMenuButton<String>(
-              icon: Icon(Icons.more_vert, color: Brand.textLight),
+              icon: Icon(Icons.more_vert, color: brand.textLight),
               tooltip: 'Mais opções',
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -883,43 +889,43 @@ class _TaskItem extends StatelessWidget {
                 }
               },
               itemBuilder: (context) => [
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'edit',
                   child: Row(
                     children: [
                       Icon(
                         Icons.edit_outlined,
                         size: 20,
-                        color: Brand.textSecondary,
+                        color: brand.textSecondary,
                       ),
-                      SizedBox(width: 12),
-                      Text('Editar detalhes'),
+                      const SizedBox(width: 12),
+                      const Text('Editar detalhes'),
                     ],
                   ),
                 ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'start',
                   child: Row(
                     children: [
                       Icon(
                         Icons.play_arrow_outlined,
                         size: 20,
-                        color: Brand.textSecondary,
+                        color: brand.textSecondary,
                       ),
-                      SizedBox(width: 12),
-                      Text('Iniciar foco'),
+                      const SizedBox(width: 12),
+                      const Text('Iniciar foco'),
                     ],
                   ),
                 ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'delete',
                   child: Row(
                     children: [
-                      Icon(Icons.delete_outline, size: 20, color: Brand.error),
-                      SizedBox(width: 12),
+                      Icon(Icons.delete_outline, size: 20, color: brand.error),
+                      const SizedBox(width: 12),
                       Text(
                         'Excluir tarefa',
-                        style: TextStyle(color: Brand.error),
+                        style: TextStyle(color: brand.error),
                       ),
                     ],
                   ),
@@ -938,28 +944,29 @@ class _WellBeingTip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brand = Brand.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Brand.tipBg,
+        color: brand.tipBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Brand.tipBorder),
+        border: Border.all(color: brand.tipBorder),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.lightbulb_outline, color: Brand.secondary, size: 28),
+          Icon(Icons.lightbulb_outline, color: brand.secondary, size: 28),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Dica de Bem-estar',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Brand.secondary,
+                    color: brand.secondary,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -967,7 +974,7 @@ class _WellBeingTip extends StatelessWidget {
                   'Lembre-se de beber água entre os blocos de foco. Pequenas pausas ajudam seu cérebro a processar informações e evitam o esgotamento.',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Brand.textSecondary,
+                    color: brand.textSecondary,
                     height: 1.5,
                   ),
                 ),

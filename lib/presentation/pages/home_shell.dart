@@ -31,6 +31,7 @@ class _HomeShellState extends State<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
+    final brand = Brand.of(context);
     return BlocProvider(
       create: (_) => sl<TasksBloc>()..add(LoadTasks()),
       child: BlocListener<TasksBloc, TasksState>(
@@ -39,7 +40,7 @@ class _HomeShellState extends State<HomeShell> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Erro: ${state.error}'),
-                backgroundColor: Colors.red,
+                backgroundColor: brand.error,
               ),
             );
           }
@@ -48,34 +49,34 @@ class _HomeShellState extends State<HomeShell> {
           body: _pages[_index],
           bottomNavigationBar: NavigationBarTheme(
             data: NavigationBarThemeData(
-              indicatorColor: Brand.primary.withValues(alpha: 0.15),
+              indicatorColor: brand.primary.withValues(alpha: 0.15),
               labelTextStyle: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
-                  return const TextStyle(
+                  return TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: Brand.primary,
+                    color: brand.primary,
                   );
                 }
-                return const TextStyle(
+                return TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
-                  color: Brand.textSecondary,
+                  color: brand.textSecondary,
                 );
               }),
               iconTheme: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
-                  return const IconThemeData(color: Brand.primary);
+                  return IconThemeData(color: brand.primary);
                 }
-                return const IconThemeData(color: Brand.textSecondary);
+                return IconThemeData(color: brand.textSecondary);
               }),
             ),
             child: NavigationBar(
               selectedIndex: _index,
               onDestinationSelected: (i) => setState(() => _index = i),
-              backgroundColor: Brand.surface,
+              backgroundColor: brand.surface,
               elevation: 2,
-              shadowColor: Brand.textMain.withValues(alpha: 0.1),
+              shadowColor: brand.shadow,
               destinations: const [
                 NavigationDestination(
                   icon: Icon(Icons.center_focus_strong_outlined),

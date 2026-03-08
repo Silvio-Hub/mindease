@@ -7,8 +7,9 @@ class SuccessPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final brand = Brand.of(context);
     return Scaffold(
-      backgroundColor: Brand.neutralBg,
+      backgroundColor: brand.neutralBg,
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -18,10 +19,10 @@ class SuccessPage extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 40,
-                  backgroundColor: Brand.success,
-                  child: const Icon(
+                  backgroundColor: brand.success,
+                  child: Icon(
                     Icons.check,
-                    color: Brand.textWhite,
+                    color: brand.textWhite,
                     size: 40,
                   ),
                 ),

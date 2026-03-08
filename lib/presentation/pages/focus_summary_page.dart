@@ -10,8 +10,9 @@ class FocusSummaryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brand = Brand.of(context);
     return Scaffold(
-      backgroundColor: Brand.background,
+      backgroundColor: brand.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -22,31 +23,31 @@ class FocusSummaryPage extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.psychology, color: Brand.primary, size: 28),
+                  Icon(Icons.psychology, color: brand.primary, size: 28),
                   const SizedBox(width: 8),
-                  const Text(
+                  Text(
                     'MindEase Focus',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Brand.primary,
+                      color: brand.primary,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 48),
 
-              const Icon(Icons.spa_rounded, size: 120, color: Brand.secondary),
+              Icon(Icons.spa_rounded, size: 120, color: brand.secondary),
 
               const SizedBox(height: 40),
 
-              const Text(
+              Text(
                 'Bom trabalho! Que tal uma pausa agora?',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Brand.textMain,
+                  color: brand.textMain,
                 ),
               ),
               const SizedBox(height: 16),
@@ -55,7 +56,7 @@ class FocusSummaryPage extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
-                  color: Brand.textSecondary,
+                  color: brand.textSecondary,
                   height: 1.5,
                 ),
               ),
@@ -73,16 +74,16 @@ class FocusSummaryPage extends StatelessWidget {
                       ),
                     );
                   },
-                  icon: const Icon(Icons.timer_outlined, color: Brand.surface),
-                  label: const Text(
+                  icon: Icon(Icons.timer_outlined, color: brand.surface),
+                  label: Text(
                     'Fazer uma pausa de 3 min',
                     style: TextStyle(
-                      color: Brand.surface,
+                      color: brand.surface,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Brand.primary,
+                    backgroundColor: brand.primary,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -101,16 +102,16 @@ class FocusSummaryPage extends StatelessWidget {
                       (route) => false,
                     );
                   },
-                  icon: const Icon(Icons.home_outlined, color: Brand.textMain),
-                  label: const Text(
+                  icon: Icon(Icons.home_outlined, color: brand.textMain),
+                  label: Text(
                     'Voltar para o início',
                     style: TextStyle(
-                      color: Brand.textMain,
+                      color: brand.textMain,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Brand.backgroundAlt,
+                    backgroundColor: brand.backgroundAlt,
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
@@ -125,16 +126,16 @@ class FocusSummaryPage extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.check_circle_outline,
                     size: 20,
-                    color: Brand.textSecondary,
+                    color: brand.textSecondary,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'Sessão de foco: $completedMinutes minutos concluídos',
-                    style: const TextStyle(
-                      color: Brand.textSecondary,
+                    style: TextStyle(
+                      color: brand.textSecondary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),

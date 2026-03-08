@@ -60,8 +60,6 @@ class _TasksPageState extends State<TasksPage>
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
       final tomorrow = today.add(const Duration(days: 1));
-      // taskDate is already stripped of time in previous logic, but let's be safe
-      // and use _isSameDay with original t.dueDate if possible.
 
       if (_selectedDateFilterIndex == 0) {
         if (_viewMode == TaskViewMode.kanban) {
@@ -120,6 +118,7 @@ class _TasksPageState extends State<TasksPage>
 
   @override
   Widget build(BuildContext context) {
+    final brand = Brand.of(context);
     final accessibilityState = context.watch<AccessibilityCubit>().state;
     final energyLevel = accessibilityState.energyLevel;
     final infoDensity =
@@ -133,7 +132,7 @@ class _TasksPageState extends State<TasksPage>
         : 'Sua lista organizada por prioridade.';
 
     return Scaffold(
-      backgroundColor: Brand.backgroundAlt,
+      backgroundColor: brand.backgroundAlt,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -151,14 +150,14 @@ class _TasksPageState extends State<TasksPage>
                           title,
                           style: theme.textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: Brand.textMain,
+                            color: brand.textMain,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           subtitle,
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: Brand.textSecondary,
+                            color: brand.textSecondary,
                           ),
                         ),
                       ],
@@ -167,7 +166,7 @@ class _TasksPageState extends State<TasksPage>
                   const SizedBox(width: 16),
                   Container(
                     decoration: BoxDecoration(
-                      color: Brand.border,
+                      color: brand.border,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     padding: const EdgeInsets.all(4),
@@ -196,26 +195,28 @@ class _TasksPageState extends State<TasksPage>
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: TextField(
                 controller: _searchController,
+                style: TextStyle(color: brand.textMain),
                 decoration: InputDecoration(
                   hintText: 'Procurar tarefa...',
-                  prefixIcon: Icon(Icons.search, color: Brand.textLight),
+                  hintStyle: TextStyle(color: brand.textLight),
+                  prefixIcon: Icon(Icons.search, color: brand.textLight),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
-                  fillColor: Brand.surface,
+                  fillColor: brand.surface,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 14,
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Brand.border),
+                    borderSide: BorderSide(color: brand.border),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Brand.primary),
+                    borderSide: BorderSide(color: brand.primary),
                   ),
                 ),
               ),
@@ -265,11 +266,11 @@ class _TasksPageState extends State<TasksPage>
                           controller: _tabController,
                           isScrollable: true,
                           tabAlignment: TabAlignment.start,
-                          labelColor: Brand.primary,
-                          unselectedLabelColor: Brand.textSecondary,
-                          indicatorColor: Brand.primary,
+                          labelColor: brand.primary,
+                          unselectedLabelColor: brand.textSecondary,
+                          indicatorColor: brand.primary,
                           indicatorSize: TabBarIndicatorSize.label,
-                          dividerColor: Brand.transparent,
+                          dividerColor: brand.transparent,
                           padding: const EdgeInsets.symmetric(horizontal: 24),
                           tabs: const [
                             Tab(text: 'PENDENTE'),
@@ -287,7 +288,7 @@ class _TasksPageState extends State<TasksPage>
                                     .toList(),
                                 emptyMessage: 'Nenhuma tarefa pendente.',
                                 emptyIcon: Icons.playlist_add,
-                                statusColor: Brand.textSecondary,
+                                statusColor: brand.textSecondary,
                                 density: infoDensity,
                                 onTaskTap: (task) {
                                   context.read<TasksBloc>().add(
@@ -301,7 +302,7 @@ class _TasksPageState extends State<TasksPage>
                                     .toList(),
                                 emptyMessage: 'Nenhuma tarefa em progresso.',
                                 emptyIcon: Icons.self_improvement,
-                                statusColor: Brand.warning,
+                                statusColor: brand.warning,
                                 density: infoDensity,
                               ),
                               _TaskListView(
@@ -310,7 +311,7 @@ class _TasksPageState extends State<TasksPage>
                                     .toList(),
                                 emptyMessage: 'Nenhuma tarefa concluída.',
                                 emptyIcon: Icons.check_circle_outline,
-                                statusColor: Brand.success,
+                                statusColor: brand.success,
                                 isDone: true,
                                 density: infoDensity,
                               ),
@@ -329,22 +330,22 @@ class _TasksPageState extends State<TasksPage>
                           Icon(
                             Icons.spa,
                             size: 64,
-                            color: Brand.primary.withValues(alpha: 0.2),
+                            color: brand.primary.withValues(alpha: 0.2),
                           ),
                           const SizedBox(height: 16),
-                          const Text(
+                          Text(
                             'Sua lista está limpa',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: Brand.textMain,
+                              color: brand.textMain,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'Que tal aproveitar este momento para planejar algo novo?',
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: Brand.textSecondary),
+                            style: TextStyle(color: brand.textSecondary),
                           ),
                         ],
                       ),
@@ -384,16 +385,16 @@ class _TasksPageState extends State<TasksPage>
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           child: Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.history,
                                 size: 20,
-                                color: Brand.textSecondary,
+                                color: brand.textSecondary,
                               ),
                               const SizedBox(width: 8),
                               Text(
                                 'TAREFAS PENDENTES',
                                 style: TextStyle(
-                                  color: Brand.textSecondary,
+                                  color: brand.textSecondary,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
                                 ),
@@ -412,10 +413,10 @@ class _TasksPageState extends State<TasksPage>
                                 icon: const Icon(Icons.restore, size: 16),
                                 label: const Text('Trazer todas para hoje'),
                                 style: TextButton.styleFrom(
-                                  backgroundColor: Brand.primary.withValues(
+                                  backgroundColor: brand.primary.withValues(
                                     alpha: 0.1,
                                   ),
-                                  foregroundColor: Brand.primary,
+                                  foregroundColor: brand.primary,
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 12,
                                     vertical: 8,
@@ -434,16 +435,16 @@ class _TasksPageState extends State<TasksPage>
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           child: Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.history,
                                 size: 20,
-                                color: Brand.textSecondary,
+                                color: brand.textSecondary,
                               ),
                               const SizedBox(width: 8),
                               Text(
                                 'PENDENTES',
                                 style: TextStyle(
-                                  color: Brand.textSecondary,
+                                  color: brand.textSecondary,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
                                 ),
@@ -472,22 +473,22 @@ class _TasksPageState extends State<TasksPage>
                                     vertical: 6,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Brand.primary.withValues(alpha: 0.1),
+                                    color: brand.primary.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Icon(
+                                      Icon(
                                         Icons.history,
                                         size: 16,
-                                        color: Brand.primary,
+                                        color: brand.primary,
                                       ),
                                       const SizedBox(width: 8),
-                                      const Text(
+                                      Text(
                                         'Trazer todas para hoje',
                                         style: TextStyle(
-                                          color: Brand.primary,
+                                          color: brand.primary,
                                           fontWeight: FontWeight.bold,
                                           fontSize: 12,
                                         ),
@@ -514,16 +515,16 @@ class _TasksPageState extends State<TasksPage>
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           child: Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.calendar_today,
                                 size: 20,
-                                color: Brand.textMain,
+                                color: brand.textMain,
                               ),
                               const SizedBox(width: 8),
-                              const Text(
+                              Text(
                                 'PARA HOJE',
                                 style: TextStyle(
-                                  color: Brand.textMain,
+                                  color: brand.textMain,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
                                 ),
@@ -588,7 +589,7 @@ class _TasksPageState extends State<TasksPage>
         },
         label: const Text('Nova Tarefa'),
         icon: const Icon(Icons.add_rounded),
-        backgroundColor: Brand.primary,
+        backgroundColor: brand.primary,
       ),
     );
   }
@@ -607,17 +608,18 @@ class _ViewToggleButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brand = Brand.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? Brand.surface : Brand.transparent,
+          color: isSelected ? brand.surface : brand.transparent,
           borderRadius: BorderRadius.circular(6),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: Brand.shadow,
+                    color: brand.shadow,
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -629,7 +631,7 @@ class _ViewToggleButton extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            color: isSelected ? Brand.primary : Brand.textSecondary,
+            color: isSelected ? brand.primary : brand.textSecondary,
           ),
         ),
       ),
@@ -652,24 +654,25 @@ class _TaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brand = Brand.of(context);
     Color energyColor;
     Color energyBgColor;
     String energyLabel;
 
     switch (task.energy) {
       case TaskEnergy.high:
-        energyColor = Brand.energyHighText;
-        energyBgColor = Brand.energyHighBg;
+        energyColor = brand.energyHighText;
+        energyBgColor = brand.energyHighBg;
         energyLabel = 'Energia: Alta';
         break;
       case TaskEnergy.medium:
-        energyColor = Brand.energyMediumText;
-        energyBgColor = Brand.energyMediumBg;
+        energyColor = brand.energyMediumText;
+        energyBgColor = brand.energyMediumBg;
         energyLabel = 'Energia: Média';
         break;
       case TaskEnergy.low:
-        energyColor = Brand.energyLowText;
-        energyBgColor = Brand.energyLowBg;
+        energyColor = brand.energyLowText;
+        energyBgColor = brand.energyLowBg;
         energyLabel = 'Energia: Baixa';
         break;
     }
@@ -677,19 +680,19 @@ class _TaskCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Brand.surface,
+        color: brand.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Brand.border),
+        border: Border.all(color: brand.border),
         boxShadow: [
           BoxShadow(
-            color: Brand.textMain.withValues(alpha: 0.02),
+            color: brand.textMain.withValues(alpha: 0.02),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Material(
-        color: Brand.transparent,
+        color: brand.transparent,
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
@@ -708,19 +711,15 @@ class _TaskCard extends StatelessWidget {
                     width: 24,
                     height: 24,
                     decoration: BoxDecoration(
-                      color: task.completed ? Brand.primary : Brand.transparent,
+                      color: task.completed ? brand.primary : brand.transparent,
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(
-                        color: task.completed ? Brand.primary : Brand.textLight,
+                        color: task.completed ? brand.primary : brand.textLight,
                         width: 2,
                       ),
                     ),
                     child: task.completed
-                        ? const Icon(
-                            Icons.check,
-                            size: 16,
-                            color: Brand.textWhite,
-                          )
+                        ? Icon(Icons.check, size: 16, color: brand.textWhite)
                         : null,
                   ),
                 ),
@@ -736,8 +735,8 @@ class _TaskCard extends StatelessWidget {
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: task.completed
-                              ? Brand.textLight
-                              : Brand.textMain,
+                              ? brand.textLight
+                              : brand.textMain,
                           decoration: task.completed
                               ? TextDecoration.lineThrough
                               : null,
@@ -750,14 +749,14 @@ class _TaskCard extends StatelessWidget {
                             Icon(
                               Icons.timer_outlined,
                               size: 14,
-                              color: Brand.textSecondary,
+                              color: brand.textSecondary,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               '${task.focusDuration.minutes}m',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Brand.textSecondary,
+                                color: brand.textSecondary,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -794,13 +793,14 @@ class _TaskCard extends StatelessWidget {
                             ),
                           ],
                         ),
-                      if (density == InfoDensity.detalhada && task.description.isNotEmpty) ...[
+                      if (density == InfoDensity.detalhada &&
+                          task.description.isNotEmpty) ...[
                         const SizedBox(height: 8),
                         Text(
                           task.description,
                           style: TextStyle(
                             fontSize: 14,
-                            color: Brand.textSecondary,
+                            color: brand.textSecondary,
                             height: 1.4,
                           ),
                           maxLines: 2,
@@ -810,7 +810,7 @@ class _TaskCard extends StatelessWidget {
                       if (density == InfoDensity.detalhada &&
                           task.subtasks.isNotEmpty) ...[
                         const SizedBox(height: 12),
-                        const Divider(color: Brand.border, height: 1),
+                        Divider(color: brand.border, height: 1),
                         const SizedBox(height: 8),
                         ...task.subtasks
                             .take(3)
@@ -826,12 +826,12 @@ class _TaskCard extends StatelessWidget {
                                         width: 14,
                                         height: 14,
                                         decoration: BoxDecoration(
-                                          color: Brand.transparent,
+                                          color: brand.transparent,
                                           borderRadius: BorderRadius.circular(
                                             4,
                                           ),
                                           border: Border.all(
-                                            color: Brand.textLight,
+                                            color: brand.textLight,
                                             width: 1.5,
                                           ),
                                         ),
@@ -842,7 +842,7 @@ class _TaskCard extends StatelessWidget {
                                       child: Text(
                                         step,
                                         style: TextStyle(
-                                          color: Brand.textSecondary,
+                                          color: brand.textSecondary,
                                           fontSize: 12,
                                           height: 1.3,
                                         ),
@@ -857,8 +857,8 @@ class _TaskCard extends StatelessWidget {
                             padding: const EdgeInsets.only(top: 4),
                             child: Text(
                               '+ ${task.subtasks.length - 3} itens',
-                              style: const TextStyle(
-                                color: Brand.primary,
+                              style: TextStyle(
+                                color: brand.primary,
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -881,12 +881,12 @@ class _TaskCard extends StatelessWidget {
                           UpdateTask(task.copyWith(scheduledFor: today)),
                         );
                       },
-                      child: const Padding(
-                        padding: EdgeInsets.all(4.0),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4.0),
                         child: Icon(
                           Icons.keyboard_double_arrow_down,
                           size: 20,
-                          color: Brand.textSecondary,
+                          color: brand.textSecondary,
                         ),
                       ),
                     ),
@@ -916,19 +916,20 @@ class _DateFilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brand = Brand.of(context);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? Brand.primary : Brand.surface,
+          color: isSelected ? brand.primary : brand.surface,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: isSelected ? Brand.primary : Brand.border),
+          border: Border.all(color: isSelected ? brand.primary : brand.border),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: Brand.primary.withValues(alpha: 0.3),
+                    color: brand.primary.withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),
@@ -941,7 +942,7 @@ class _DateFilterChip extends StatelessWidget {
               Icon(
                 icon,
                 size: 16,
-                color: isSelected ? Brand.textWhite : Brand.textSecondary,
+                color: isSelected ? brand.textWhite : brand.textSecondary,
               ),
               const SizedBox(width: 8),
             ],
@@ -949,7 +950,7 @@ class _DateFilterChip extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 14,
-                color: isSelected ? Brand.textWhite : Brand.textSecondary,
+                color: isSelected ? brand.textWhite : brand.textSecondary,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
               ),
             ),
@@ -964,7 +965,7 @@ class _TaskListView extends StatelessWidget {
   final List<Task> items;
   final String emptyMessage;
   final IconData emptyIcon;
-  final Color statusColor;
+  final Color? statusColor;
   final bool isDone;
   final InfoDensity density;
   final void Function(Task)? onTaskTap;
@@ -973,7 +974,7 @@ class _TaskListView extends StatelessWidget {
     required this.items,
     required this.emptyMessage,
     required this.emptyIcon,
-    this.statusColor = Brand.textSecondary,
+    this.statusColor,
     this.isDone = false,
     required this.density,
     this.onTaskTap,
@@ -981,6 +982,8 @@ class _TaskListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brand = Brand.of(context);
+
     if (items.isEmpty) {
       return Center(
         child: Column(
@@ -989,14 +992,14 @@ class _TaskListView extends StatelessWidget {
             Icon(
               emptyIcon,
               size: 64,
-              color: Brand.textSecondary.withValues(alpha: 0.5),
+              color: brand.textSecondary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
               emptyMessage,
               style: Theme.of(
                 context,
-              ).textTheme.bodyLarge?.copyWith(color: Brand.textSecondary),
+              ).textTheme.bodyLarge?.copyWith(color: brand.textSecondary),
               textAlign: TextAlign.center,
             ),
           ],
@@ -1025,6 +1028,7 @@ class _TaskOptionsButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brand = Brand.of(context);
     final List<Map<String, dynamic>> moveOptions = [];
 
     if (!task.completed && !task.inProgress) {
@@ -1053,7 +1057,7 @@ class _TaskOptionsButton extends StatelessWidget {
     }
 
     return PopupMenuButton<String>(
-      icon: const Icon(Icons.more_vert, color: Brand.textLight),
+      icon: Icon(Icons.more_vert, color: brand.textLight),
       onSelected: (value) async {
         if (value == 'start') {
           await Navigator.of(context).push(
@@ -1096,17 +1100,14 @@ class _TaskOptionsButton extends StatelessWidget {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx, false),
-                  child: const Text(
+                  child: Text(
                     'Cancelar',
-                    style: TextStyle(color: Brand.textSecondary),
+                    style: TextStyle(color: brand.textSecondary),
                   ),
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(ctx, true),
-                  child: const Text(
-                    'Excluir',
-                    style: TextStyle(color: Colors.red),
-                  ),
+                  child: Text('Excluir', style: TextStyle(color: brand.error)),
                 ),
               ],
             ),
@@ -1118,13 +1119,13 @@ class _TaskOptionsButton extends StatelessWidget {
         }
       },
       itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'edit',
           child: Row(
             children: [
-              Icon(Icons.edit_outlined, size: 20, color: Brand.textSecondary),
-              SizedBox(width: 12),
-              Text('Editar detalhes'),
+              Icon(Icons.edit_outlined, size: 20, color: brand.textSecondary),
+              const SizedBox(width: 12),
+              const Text('Editar detalhes'),
             ],
           ),
         ),
@@ -1136,7 +1137,7 @@ class _TaskOptionsButton extends StatelessWidget {
                 Icon(
                   option['icon'] as IconData,
                   size: 20,
-                  color: Brand.textSecondary,
+                  color: brand.textSecondary,
                 ),
                 const SizedBox(width: 12),
                 Text(option['label'] as String),
@@ -1144,27 +1145,27 @@ class _TaskOptionsButton extends StatelessWidget {
             ),
           ),
         ),
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'start',
           child: Row(
             children: [
               Icon(
                 Icons.play_arrow_outlined,
                 size: 20,
-                color: Brand.textSecondary,
+                color: brand.textSecondary,
               ),
-              SizedBox(width: 12),
-              Text('Iniciar foco'),
+              const SizedBox(width: 12),
+              const Text('Iniciar foco'),
             ],
           ),
         ),
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'delete',
           child: Row(
             children: [
-              Icon(Icons.delete_outline, size: 20, color: Colors.red),
-              SizedBox(width: 12),
-              Text('Excluir tarefa', style: TextStyle(color: Colors.red)),
+              Icon(Icons.delete_outline, size: 20, color: brand.error),
+              const SizedBox(width: 12),
+              Text('Excluir tarefa', style: TextStyle(color: brand.error)),
             ],
           ),
         ),

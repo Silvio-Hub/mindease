@@ -35,6 +35,13 @@ class PreferencesRepositoryImpl implements PreferencesRepository {
       } catch (_) {}
     }
 
+    AppThemeMode themeMode = AppThemeMode.system;
+    if (map['themeMode'] != null) {
+      try {
+        themeMode = AppThemeMode.values[map['themeMode'] as int];
+      } catch (_) {}
+    }
+
     return UserPreferences(
       focusMode: (map['focusMode'] as bool?) ?? false,
       highContrast: (map['highContrast'] as bool?) ?? false,
@@ -44,6 +51,7 @@ class PreferencesRepositoryImpl implements PreferencesRepository {
       animationsEnabled: (map['animationsEnabled'] as bool?) ?? true,
       energyLevel: energy,
       infoDensity: density,
+      themeMode: themeMode,
     );
   }
 
@@ -58,6 +66,7 @@ class PreferencesRepositoryImpl implements PreferencesRepository {
       'animationsEnabled': prefs.animationsEnabled,
       'energyLevel': prefs.energyLevel?.index,
       'infoDensity': prefs.infoDensity?.index,
+      'themeMode': prefs.themeMode.index,
     });
   }
 }
