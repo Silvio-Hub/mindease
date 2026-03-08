@@ -27,6 +27,9 @@ jobs:
           channel: "stable"
           cache: true
 
+      - name: Create .env file
+        run: echo "API_KEY=dummy" > .env
+
       - name: Install dependencies
         run: flutter pub get
 
