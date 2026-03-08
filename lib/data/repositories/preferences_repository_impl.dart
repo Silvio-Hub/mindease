@@ -20,7 +20,7 @@ class PreferencesRepositoryImpl implements PreferencesRepository {
         animationsEnabled: true,
       );
     }
-    
+
     TaskEnergy? energy;
     if (map['energyLevel'] != null) {
       try {

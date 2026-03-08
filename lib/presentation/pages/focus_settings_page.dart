@@ -413,10 +413,7 @@ class _FocusSettingsPageState extends State<FocusSettingsPage> {
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(context, true),
-                  child: Text(
-                    'Sair',
-                    style: TextStyle(color: brand.error),
-                  ),
+                  child: Text('Sair', style: TextStyle(color: brand.error)),
                 ),
               ],
             ),

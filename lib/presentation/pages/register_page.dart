@@ -222,9 +222,7 @@ class _RegisterViewState extends State<_RegisterView> {
                                         color: brand.error,
                                       ),
                                     ),
-                                    errorStyle: TextStyle(
-                                      color: brand.error,
-                                    ),
+                                    errorStyle: TextStyle(color: brand.error),
                                     contentPadding: const EdgeInsets.symmetric(
                                       horizontal: 16,
                                       vertical: 16,
@@ -295,9 +293,7 @@ class _RegisterViewState extends State<_RegisterView> {
                                         color: brand.error,
                                       ),
                                     ),
-                                    errorStyle: TextStyle(
-                                      color: brand.error,
-                                    ),
+                                    errorStyle: TextStyle(color: brand.error),
                                     contentPadding: const EdgeInsets.symmetric(
                                       horizontal: 16,
                                       vertical: 16,
@@ -372,9 +368,7 @@ class _RegisterViewState extends State<_RegisterView> {
                                         color: brand.error,
                                       ),
                                     ),
-                                    errorStyle: TextStyle(
-                                      color: brand.error,
-                                    ),
+                                    errorStyle: TextStyle(color: brand.error),
                                     contentPadding: const EdgeInsets.symmetric(
                                       horizontal: 16,
                                       vertical: 16,

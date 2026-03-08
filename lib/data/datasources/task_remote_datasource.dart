@@ -30,7 +30,7 @@ class TaskRemoteDataSourceImpl implements TaskRemoteDataSource {
   Future<void> addTask(TaskModel task) async {
     final collection = firestore.collection('tasks');
     final docRef = task.id.isEmpty ? collection.doc() : collection.doc(task.id);
-    
+
     // Create a new TaskModel with the generated ID (if it was empty)
     final taskToSave = TaskModel(
       id: docRef.id,
@@ -71,8 +71,10 @@ class TaskRemoteDataSourceImpl implements TaskRemoteDataSource {
         .collection('tasks')
         .where('userId', isEqualTo: userId)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => TaskModel.fromJson(doc.data(), doc.id))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => TaskModel.fromJson(doc.data(), doc.id))
+              .toList(),
+        );
   }
 }
