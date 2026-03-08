@@ -7,10 +7,15 @@ import 'package:mindease/presentation/controllers/accessibility_cubit.dart';
 import 'package:mindease/presentation/pages/splash_page.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
-  await setupDependencies();
-  runApp(const MindEaseApp());
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+    await dotenv.load(fileName: ".env");
+    await setupDependencies();
+    runApp(const MindEaseApp());
+  } catch (e, stackTrace) {
+    debugPrint('Erro fatal na inicialização: $e');
+    debugPrint(stackTrace.toString());
+  }
 }
 
 class MindEaseApp extends StatelessWidget {
