@@ -47,15 +47,9 @@ class _FocusDashboardPageState extends State<FocusDashboardPage> {
       }
     }
 
-    // Default to first pending or in-progress task
+    // Default to first pending task, respecting the sort order (Energy > Date)
     try {
-      // Prioritize in-progress
-      try {
-        return tasks.firstWhere((t) => t.inProgress && !t.completed);
-      } catch (_) {
-        // Then pending
-        return tasks.firstWhere((t) => !t.completed);
-      }
+      return tasks.firstWhere((t) => !t.completed);
     } catch (_) {
       return null; // All done or empty
     }
@@ -232,7 +226,22 @@ class _FocusDashboardPageState extends State<FocusDashboardPage> {
             accessibilityState.infoDensity ?? InfoDensity.equilibrada;
         var allTasks = List<Task>.from(state.tasks);
 
-        allTasks.sort((a, b) {
+        // Filter tasks to include only those scheduled for today or earlier (overdue)
+        // Future tasks should not be prioritized by energy in the focus view
+        final now = DateTime.now();
+        final tomorrow = DateTime(now.year, now.month, now.day + 1);
+
+        // Split tasks into eligible (today/overdue) and future
+        var eligibleTasks = allTasks
+            .where((t) => t.scheduledFor.isBefore(tomorrow) && !t.completed)
+            .toList();
+        var futureTasks = allTasks
+            .where((t) => !t.scheduledFor.isBefore(tomorrow) && !t.completed)
+            .toList();
+        var completedTasks = allTasks.where((t) => t.completed).toList();
+
+        // Sort eligible tasks by energy first, then inProgress status, then date
+        eligibleTasks.sort((a, b) {
           if (energyLevel != null) {
             final scoreA = _getEnergyScore(a.energy, energyLevel);
             final scoreB = _getEnergyScore(b.energy, energyLevel);
@@ -240,14 +249,24 @@ class _FocusDashboardPageState extends State<FocusDashboardPage> {
             if (energyComparison != 0) return energyComparison;
           }
 
-          // Task.scheduledFor is required, so no null check needed
+          // If energy scores are equal (or no energy level set), prioritize inProgress
+          if (a.inProgress && !b.inProgress) return -1;
+          if (!a.inProgress && b.inProgress) return 1;
+
           return a.scheduledFor.compareTo(b.scheduledFor);
         });
 
-        final currentFocusTask = _getTask(allTasks);
+        // Sort future tasks by date only (energy logic applies primarily to "what to do now")
+        futureTasks.sort((a, b) => a.scheduledFor.compareTo(b.scheduledFor));
+
+        // Recombine for display, prioritizing eligible tasks
+        var sortedTasks = [...eligibleTasks, ...futureTasks, ...completedTasks];
+
+        final currentFocusTask = _getTask(sortedTasks);
 
         // Filter out the focus task from the list below and only show pending/in-progress
-        final otherTasks = allTasks
+        // We prefer showing eligible tasks in "Next Tasks"
+        final otherTasks = sortedTasks
             .where((t) => t.id != currentFocusTask?.id && !t.completed)
             .take(2)
             .toList();
@@ -510,6 +529,20 @@ class _FocusCard extends StatelessWidget {
                       color: Brand.textSecondary,
                       height: 1.5,
                     ),
+                  ),
+                ],
+                if (density == InfoDensity.detalhada &&
+                    task!.description.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    task!.description,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Brand.textSecondary,
+                      height: 1.4,
+                    ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
                 if (density == InfoDensity.detalhada &&
@@ -777,6 +810,53 @@ class _TaskItem extends StatelessWidget {
                         ),
                       ],
                     ),
+                  ],
+                  if (density == InfoDensity.detalhada &&
+                      task.subtasks.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    ...task.subtasks
+                        .take(2)
+                        .map(
+                          (step) => Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: Brand.textSecondary,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    step,
+                                    style: const TextStyle(
+                                      color: Brand.textSecondary,
+                                      fontSize: 13,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    if (task.subtasks.length > 2)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          '+ ${task.subtasks.length - 2} itens',
+                          style: const TextStyle(
+                            color: Brand.primary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                   ],
                 ],
               ),

@@ -1,10 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-enum TaskEnergy {
-  high,
-  medium,
-  low,
-}
+enum TaskEnergy { high, medium, low }
 
 enum FocusDuration {
   short(15),
@@ -20,6 +16,7 @@ class Task extends Equatable {
   final String id;
   final String userId;
   final String title;
+  final String description;
   final List<String> subtasks;
   final bool inProgress;
   final bool completed;
@@ -32,6 +29,7 @@ class Task extends Equatable {
     required this.id,
     required this.userId,
     required this.title,
+    this.description = '',
     this.subtasks = const [],
     this.inProgress = false,
     this.completed = false,
@@ -45,6 +43,7 @@ class Task extends Equatable {
     String? id,
     String? userId,
     String? title,
+    String? description,
     List<String>? subtasks,
     bool? inProgress,
     bool? completed,
@@ -57,6 +56,7 @@ class Task extends Equatable {
       id: id ?? this.id,
       userId: userId ?? this.userId,
       title: title ?? this.title,
+      description: description ?? this.description,
       subtasks: subtasks ?? this.subtasks,
       inProgress: inProgress ?? this.inProgress,
       completed: completed ?? this.completed,
@@ -72,6 +72,7 @@ class Task extends Equatable {
     id,
     userId,
     title,
+    description,
     subtasks,
     inProgress,
     completed,

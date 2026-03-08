@@ -64,7 +64,11 @@ class _TasksPageState extends State<TasksPage>
       // and use _isSameDay with original t.dueDate if possible.
 
       if (_selectedDateFilterIndex == 0) {
-        matchesDate = _isSameDay(t.scheduledFor, today);
+        if (_viewMode == TaskViewMode.kanban) {
+          matchesDate = _isSameDay(t.scheduledFor, today);
+        } else {
+          matchesDate = !t.completed && !t.scheduledFor.isBefore(today);
+        }
       } else if (_selectedDateFilterIndex == 1) {
         matchesDate = _isSameDay(t.scheduledFor, tomorrow);
       } else {
@@ -285,6 +289,11 @@ class _TasksPageState extends State<TasksPage>
                                 emptyIcon: Icons.playlist_add,
                                 statusColor: Brand.textSecondary,
                                 density: infoDensity,
+                                onTaskTap: (task) {
+                                  context.read<TasksBloc>().add(
+                                    UpdateTask(task.copyWith(inProgress: true)),
+                                  );
+                                },
                               ),
                               _TaskListView(
                                 items: filtered
@@ -342,16 +351,192 @@ class _TasksPageState extends State<TasksPage>
                     );
                   }
 
-                  return ListView.builder(
+                  // Split tasks for "Today" view
+                  final now = DateTime.now();
+                  final today = DateTime(now.year, now.month, now.day);
+                  List<Task> pendingTasks = [];
+                  List<Task> mainTasks = [];
+                  List<Task> futureTasks = [];
+
+                  if (_selectedDateFilterIndex == 0) {
+                    pendingTasks = filtered
+                        .where((t) => t.scheduledFor.isBefore(today))
+                        .toList();
+                    mainTasks = filtered
+                        .where((t) => _isSameDay(t.scheduledFor, today))
+                        .toList();
+                    futureTasks = filtered
+                        .where(
+                          (t) =>
+                              !t.scheduledFor.isBefore(today) &&
+                              !_isSameDay(t.scheduledFor, today),
+                        )
+                        .toList();
+                  } else {
+                    mainTasks = filtered;
+                  }
+
+                  return ListView(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
-                    itemCount: filtered.length + 1, // +1 for spacing at bottom
-                    itemBuilder: (context, index) {
-                      if (index == filtered.length) {
-                        return const SizedBox(height: 80);
-                      }
-                      final task = filtered[index];
-                      return _TaskCard(task: task, density: infoDensity);
-                    },
+                    children: [
+                      if (pendingTasks.isNotEmpty) ...[
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.history,
+                                size: 20,
+                                color: Brand.textSecondary,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'TAREFAS PENDENTES',
+                                style: TextStyle(
+                                  color: Brand.textSecondary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const Spacer(),
+                              TextButton.icon(
+                                onPressed: () {
+                                  for (final task in pendingTasks) {
+                                    context.read<TasksBloc>().add(
+                                      UpdateTask(
+                                        task.copyWith(scheduledFor: today),
+                                      ),
+                                    );
+                                  }
+                                },
+                                icon: const Icon(Icons.restore, size: 16),
+                                label: const Text('Trazer todas para hoje'),
+                                style: TextButton.styleFrom(
+                                  backgroundColor: Brand.primary.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  foregroundColor: Brand.primary,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        ...pendingTasks.map(
+                          (t) => _TaskCard(task: t, density: infoDensity),
+                        ),
+                      ],
+                      if (futureTasks.isNotEmpty) ...[
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.history,
+                                size: 20,
+                                color: Brand.textSecondary,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'PENDENTES',
+                                style: TextStyle(
+                                  color: Brand.textSecondary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const Spacer(),
+                              InkWell(
+                                onTap: () {
+                                  final now = DateTime.now();
+                                  final today = DateTime(
+                                    now.year,
+                                    now.month,
+                                    now.day,
+                                  );
+                                  for (final task in futureTasks) {
+                                    context.read<TasksBloc>().add(
+                                      UpdateTask(
+                                        task.copyWith(scheduledFor: today),
+                                      ),
+                                    );
+                                  }
+                                },
+                                borderRadius: BorderRadius.circular(20),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Brand.primary.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.history,
+                                        size: 16,
+                                        color: Brand.primary,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      const Text(
+                                        'Trazer todas para hoje',
+                                        style: TextStyle(
+                                          color: Brand.primary,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        ...futureTasks.map(
+                          (t) => _TaskCard(
+                            task: t,
+                            density: infoDensity,
+                            showPendingIcon: true,
+                          ),
+                        ),
+                      ],
+                      if (_selectedDateFilterIndex == 0 &&
+                          (pendingTasks.isNotEmpty ||
+                              mainTasks.isNotEmpty)) ...[
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.calendar_today,
+                                size: 20,
+                                color: Brand.textMain,
+                              ),
+                              const SizedBox(width: 8),
+                              const Text(
+                                'PARA HOJE',
+                                style: TextStyle(
+                                  color: Brand.textMain,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                      ...mainTasks.map(
+                        (t) => _TaskCard(task: t, density: infoDensity),
+                      ),
+                      const SizedBox(height: 80),
+                    ],
                   );
                 },
               ),
@@ -455,8 +640,15 @@ class _ViewToggleButton extends StatelessWidget {
 class _TaskCard extends StatelessWidget {
   final Task task;
   final InfoDensity density;
+  final bool showPendingIcon;
+  final VoidCallback? onTap;
 
-  const _TaskCard({required this.task, required this.density});
+  const _TaskCard({
+    required this.task,
+    required this.density,
+    this.showPendingIcon = false,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -499,34 +691,38 @@ class _TaskCard extends StatelessWidget {
       child: Material(
         color: Brand.transparent,
         child: InkWell(
-          onTap: () {
-            context.read<TasksBloc>().add(
-              UpdateTask(task.copyWith(completed: !task.completed)),
-            );
-          },
+          onTap: onTap,
           borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: task.completed ? Brand.primary : Brand.transparent,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: task.completed ? Brand.primary : Brand.textLight,
-                      width: 2,
+                InkWell(
+                  onTap: () {
+                    context.read<TasksBloc>().add(
+                      UpdateTask(task.copyWith(completed: !task.completed)),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(6),
+                  child: Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: task.completed ? Brand.primary : Brand.transparent,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: task.completed ? Brand.primary : Brand.textLight,
+                        width: 2,
+                      ),
                     ),
+                    child: task.completed
+                        ? const Icon(
+                            Icons.check,
+                            size: 16,
+                            color: Brand.textWhite,
+                          )
+                        : null,
                   ),
-                  child: task.completed
-                      ? const Icon(
-                          Icons.check,
-                          size: 16,
-                          color: Brand.textWhite,
-                        )
-                      : null,
                 ),
                 const SizedBox(width: 16),
 
@@ -598,6 +794,19 @@ class _TaskCard extends StatelessWidget {
                             ),
                           ],
                         ),
+                      if (density == InfoDensity.detalhada && task.description.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          task.description,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Brand.textSecondary,
+                            height: 1.4,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                       if (density == InfoDensity.detalhada &&
                           task.subtasks.isNotEmpty) ...[
                         const SizedBox(height: 12),
@@ -660,7 +869,29 @@ class _TaskCard extends StatelessWidget {
                   ),
                 ),
 
-                _TaskOptionsButton(task: task, showMoveOptions: false),
+                if (showPendingIcon)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(20),
+                      onTap: () {
+                        final now = DateTime.now();
+                        final today = DateTime(now.year, now.month, now.day);
+                        context.read<TasksBloc>().add(
+                          UpdateTask(task.copyWith(scheduledFor: today)),
+                        );
+                      },
+                      child: const Padding(
+                        padding: EdgeInsets.all(4.0),
+                        child: Icon(
+                          Icons.keyboard_double_arrow_down,
+                          size: 20,
+                          color: Brand.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                _TaskOptionsButton(task: task),
               ],
             ),
           ),
@@ -736,6 +967,7 @@ class _TaskListView extends StatelessWidget {
   final Color statusColor;
   final bool isDone;
   final InfoDensity density;
+  final void Function(Task)? onTaskTap;
 
   const _TaskListView({
     required this.items,
@@ -744,6 +976,7 @@ class _TaskListView extends StatelessWidget {
     this.statusColor = Brand.textSecondary,
     this.isDone = false,
     required this.density,
+    this.onTaskTap,
   });
 
   @override
@@ -776,7 +1009,11 @@ class _TaskListView extends StatelessWidget {
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final task = items[index];
-        return _TaskCard(task: task, density: density);
+        return _TaskCard(
+          task: task,
+          density: density,
+          onTap: onTaskTap != null ? () => onTaskTap!(task) : null,
+        );
       },
     );
   }
@@ -784,23 +1021,35 @@ class _TaskListView extends StatelessWidget {
 
 class _TaskOptionsButton extends StatelessWidget {
   final Task task;
-  final bool showMoveOptions;
-
-  const _TaskOptionsButton({required this.task, this.showMoveOptions = true});
+  const _TaskOptionsButton({required this.task});
 
   @override
   Widget build(BuildContext context) {
-    String? moveAction;
-    String? moveLabel;
+    final List<Map<String, dynamic>> moveOptions = [];
 
-    if (showMoveOptions) {
-      if (!task.completed && !task.inProgress) {
-        moveAction = 'move_progress';
-        moveLabel = 'Mover para "Em progresso"';
-      } else if (task.inProgress && !task.completed) {
-        moveAction = 'move_done';
-        moveLabel = 'Mover para "Concluído"';
-      }
+    if (!task.completed && !task.inProgress) {
+      moveOptions.add({
+        'value': 'move_progress',
+        'label': 'Mover para "Em progresso"',
+        'icon': Icons.arrow_forward,
+      });
+    } else if (task.inProgress && !task.completed) {
+      moveOptions.add({
+        'value': 'move_pending',
+        'label': 'Mover para "Pendente"',
+        'icon': Icons.arrow_back,
+      });
+      moveOptions.add({
+        'value': 'move_done',
+        'label': 'Mover para "Concluído"',
+        'icon': Icons.check,
+      });
+    } else if (task.completed) {
+      moveOptions.add({
+        'value': 'move_pending',
+        'label': 'Mover para "Pendente"',
+        'icon': Icons.restore,
+      });
     }
 
     return PopupMenuButton<String>(
@@ -829,6 +1078,10 @@ class _TaskOptionsButton extends StatelessWidget {
         } else if (value == 'move_progress') {
           context.read<TasksBloc>().add(
             MoveTask(task.id, inProgress: true, completed: false),
+          );
+        } else if (value == 'move_pending') {
+          context.read<TasksBloc>().add(
+            MoveTask(task.id, inProgress: false, completed: false),
           );
         } else if (value == 'move_done') {
           context.read<TasksBloc>().add(
@@ -875,17 +1128,22 @@ class _TaskOptionsButton extends StatelessWidget {
             ],
           ),
         ),
-        if (moveAction != null)
-          PopupMenuItem<String>(
-            value: moveAction,
+        ...moveOptions.map(
+          (option) => PopupMenuItem<String>(
+            value: option['value'] as String,
             child: Row(
               children: [
-                Icon(Icons.arrow_forward, size: 20, color: Brand.textSecondary),
-                SizedBox(width: 12),
-                Text(moveLabel!),
+                Icon(
+                  option['icon'] as IconData,
+                  size: 20,
+                  color: Brand.textSecondary,
+                ),
+                const SizedBox(width: 12),
+                Text(option['label'] as String),
               ],
             ),
           ),
+        ),
         const PopupMenuItem<String>(
           value: 'start',
           child: Row(
