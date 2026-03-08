@@ -4,9 +4,9 @@ import 'package:mindease/core/constants/brand.dart';
 import 'package:mindease/domain/entities/task.dart';
 
 class EditTaskPage extends StatefulWidget {
-  final String initialTitle;
+  final Task task;
 
-  const EditTaskPage({super.key, required this.initialTitle});
+  const EditTaskPage({super.key, required this.task});
 
   @override
   State<EditTaskPage> createState() => _EditTaskPageState();
@@ -16,18 +16,48 @@ class _EditTaskPageState extends State<EditTaskPage> {
   late final TextEditingController _titleCtrl;
   final _stepCtrls = List.generate(3, (_) => TextEditingController());
 
-  int _estimateMinutes = 45;
-  TaskEnergy _energy = TaskEnergy.high;
+  late FocusDuration _focusDuration;
+  late TaskEnergy _energy;
 
-  int _dateOption = 2;
-  DateTime? _selectedCustomDate = DateTime(2024, 10, 27);
+  late int _dateOption;
+  DateTime? _selectedCustomDate;
 
   @override
   void initState() {
     super.initState();
-    _titleCtrl = TextEditingController(text: widget.initialTitle);
-    _stepCtrls[0].text = "Revisar anotações da aula";
-    _stepCtrls[1].text = "Criar slides";
+    final t = widget.task;
+    _titleCtrl = TextEditingController(text: t.title);
+
+    // Inicializa checklist (até 3 itens)
+    for (int i = 0; i < 3; i++) {
+      if (i < t.subtasks.length) {
+        _stepCtrls[i].text = t.subtasks[i];
+      }
+    }
+
+    _focusDuration = t.focusDuration;
+    _energy = t.energy;
+
+    // Lógica de data
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(const Duration(days: 1));
+
+    final d = DateTime(
+      t.scheduledFor.year,
+      t.scheduledFor.month,
+      t.scheduledFor.day,
+    );
+    if (d == today) {
+      _dateOption = 0;
+      _selectedCustomDate = t.scheduledFor;
+    } else if (d == tomorrow) {
+      _dateOption = 1;
+      _selectedCustomDate = t.scheduledFor;
+    } else {
+      _dateOption = 2;
+      _selectedCustomDate = t.scheduledFor;
+    }
   }
 
   @override
@@ -60,17 +90,18 @@ class _EditTaskPageState extends State<EditTaskPage> {
 
     Navigator.pop(context, {
       'title': _titleCtrl.text.trim(),
-      'steps': _stepCtrls
+      'subtasks': _stepCtrls
           .map((c) => c.text.trim())
           .where((s) => s.isNotEmpty)
           .toList(),
-      'estimate': _estimateMinutes,
+      'focusDuration': _focusDuration,
       'energy': _energy,
-      'dueDate': dueDate,
+      'scheduledFor': dueDate,
     });
   }
 
   Future<void> _pickDate() async {
+    final brand = Brand.of(context);
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
@@ -80,10 +111,10 @@ class _EditTaskPageState extends State<EditTaskPage> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Brand.primary,
-              onPrimary: Brand.textWhite,
-              onSurface: Brand.textMain,
+            colorScheme: ColorScheme.light(
+              primary: brand.primary,
+              onPrimary: brand.textWhite,
+              onSurface: brand.textMain,
             ),
           ),
           child: child!,
@@ -101,21 +132,22 @@ class _EditTaskPageState extends State<EditTaskPage> {
 
   @override
   Widget build(BuildContext context) {
+    final brand = Brand.of(context);
     return Scaffold(
-      backgroundColor: Brand.surface,
+      backgroundColor: brand.surface,
       appBar: AppBar(
-        backgroundColor: Brand.surface,
+        backgroundColor: brand.surface,
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back, color: Brand.textMain),
+          icon: Icon(Icons.arrow_back, color: brand.textMain),
         ),
-        title: const Text(
+        title: Text(
           'Editar Tarefa',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Brand.textMain,
+            color: brand.textMain,
           ),
         ),
         centerTitle: true,
@@ -134,20 +166,17 @@ class _EditTaskPageState extends State<EditTaskPage> {
                 controller: _titleCtrl,
                 decoration: InputDecoration(
                   hintText: 'Ex: Estudar matemática',
-                  hintStyle: const TextStyle(color: Brand.textLight),
+                  hintStyle: TextStyle(color: brand.textLight),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Brand.primary),
+                    borderSide: BorderSide(color: brand.primary),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: Brand.primary,
-                      width: 2,
-                    ),
+                    borderSide: BorderSide(color: brand.primary, width: 2),
                   ),
                   filled: true,
-                  fillColor: Brand.surface,
+                  fillColor: brand.surface,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 14,
@@ -166,7 +195,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: Brand.primary.withValues(alpha: 0.8),
+                      color: brand.primary.withValues(alpha: 0.8),
                       letterSpacing: 1.0,
                     ),
                   ),
@@ -184,20 +213,20 @@ class _EditTaskPageState extends State<EditTaskPage> {
                           : index == 1
                           ? 'Segundo passo...'
                           : 'Terceiro passo...',
-                      hintStyle: TextStyle(color: Brand.textLight),
+                      hintStyle: TextStyle(color: brand.textLight),
                       prefixIcon: Padding(
                         padding: const EdgeInsets.all(12),
                         child: Container(
                           width: 20,
                           height: 20,
                           decoration: BoxDecoration(
-                            border: Border.all(color: Brand.border),
+                            border: Border.all(color: brand.border),
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
                       ),
                       filled: true,
-                      fillColor: Brand.backgroundAlt,
+                      fillColor: brand.backgroundAlt,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
@@ -208,10 +237,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(
-                          color: Brand.primary,
-                          width: 1,
-                        ),
+                        borderSide: BorderSide(color: brand.primary, width: 1),
                       ),
                       contentPadding: const EdgeInsets.symmetric(vertical: 14),
                     ),
@@ -225,7 +251,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
               const SizedBox(height: 4),
               Text(
                 'Quanto de esforço essa tarefa pede de você agora?',
-                style: TextStyle(fontSize: 12, color: Brand.textSecondary),
+                style: TextStyle(fontSize: 12, color: brand.textSecondary),
               ),
               const SizedBox(height: 12),
               Row(
@@ -262,7 +288,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
               const SizedBox(height: 4),
               Text(
                 'Defina uma data para manter o foco.',
-                style: TextStyle(fontSize: 12, color: Brand.textSecondary),
+                style: TextStyle(fontSize: 12, color: brand.textSecondary),
               ),
               const SizedBox(height: 12),
               Row(
@@ -307,7 +333,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
                       vertical: 14,
                     ),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Brand.border),
+                      border: Border.all(color: brand.border),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
@@ -315,7 +341,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
                         Icon(
                           Icons.calendar_today_outlined,
                           size: 20,
-                          color: Brand.textSecondary,
+                          color: brand.textSecondary,
                         ),
                         const SizedBox(width: 12),
                         Text(
@@ -324,10 +350,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
                                   'dd/MM/yyyy',
                                 ).format(_selectedCustomDate!)
                               : 'Selecione uma data',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Brand.textMain,
-                          ),
+                          style: TextStyle(fontSize: 14, color: brand.textMain),
                         ),
                       ],
                     ),
@@ -344,32 +367,37 @@ class _EditTaskPageState extends State<EditTaskPage> {
                   Expanded(
                     child: _SelectableButton(
                       label: '15m',
-                      isSelected: _estimateMinutes == 15,
-                      onTap: () => setState(() => _estimateMinutes = 15),
+                      isSelected: _focusDuration == FocusDuration.short,
+                      onTap: () =>
+                          setState(() => _focusDuration = FocusDuration.short),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: _SelectableButton(
                       label: '30m',
-                      isSelected: _estimateMinutes == 30,
-                      onTap: () => setState(() => _estimateMinutes = 30),
+                      isSelected: _focusDuration == FocusDuration.medium,
+                      onTap: () =>
+                          setState(() => _focusDuration = FocusDuration.medium),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: _SelectableButton(
                       label: '45m',
-                      isSelected: _estimateMinutes == 45,
-                      onTap: () => setState(() => _estimateMinutes = 45),
+                      isSelected: _focusDuration == FocusDuration.long,
+                      onTap: () =>
+                          setState(() => _focusDuration = FocusDuration.long),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: _SelectableButton(
                       label: '60m',
-                      isSelected: _estimateMinutes == 60,
-                      onTap: () => setState(() => _estimateMinutes = 60),
+                      isSelected: _focusDuration == FocusDuration.extraLong,
+                      onTap: () => setState(
+                        () => _focusDuration = FocusDuration.extraLong,
+                      ),
                     ),
                   ),
                 ],
@@ -383,8 +411,8 @@ class _EditTaskPageState extends State<EditTaskPage> {
                 child: ElevatedButton.icon(
                   onPressed: _onSave,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Brand.primary,
-                    foregroundColor: Brand.textWhite,
+                    backgroundColor: brand.primary,
+                    foregroundColor: brand.textWhite,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -402,7 +430,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
                 child: TextButton(
                   onPressed: () => Navigator.pop(context),
                   style: TextButton.styleFrom(
-                    foregroundColor: Brand.textSecondary,
+                    foregroundColor: brand.textSecondary,
                   ),
                   child: const Text('Cancelar', style: TextStyle(fontSize: 16)),
                 ),
@@ -416,12 +444,13 @@ class _EditTaskPageState extends State<EditTaskPage> {
   }
 
   Widget _buildSectionLabel(String text) {
+    final brand = Brand.of(context);
     return Text(
       text,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.bold,
-        color: Brand.textMain,
+        color: brand.textMain,
       ),
     );
   }
@@ -442,15 +471,16 @@ class _SelectableButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brand = Brand.of(context);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? Brand.selectedBg : Brand.surface,
+          color: isSelected ? brand.selectedBg : brand.surface,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: isSelected ? Brand.primary : Brand.border),
+          border: Border.all(color: isSelected ? brand.primary : brand.border),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -459,7 +489,7 @@ class _SelectableButton extends StatelessWidget {
               Icon(
                 icon,
                 size: 16,
-                color: isSelected ? Brand.primary : Brand.textSecondary,
+                color: isSelected ? brand.primary : brand.textSecondary,
               ),
               const SizedBox(width: 8),
             ],
@@ -468,7 +498,7 @@ class _SelectableButton extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isSelected ? Brand.primary : Brand.textSecondary,
+                color: isSelected ? brand.primary : brand.textSecondary,
               ),
             ),
           ],

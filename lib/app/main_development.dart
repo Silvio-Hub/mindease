@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:mindease/app/di/injector.dart';
 import 'package:mindease/core/theme/app_theme.dart';
 import 'package:mindease/presentation/controllers/accessibility_cubit.dart';
@@ -7,6 +8,7 @@ import 'package:mindease/presentation/pages/splash_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   await setupDependencies();
   runApp(const MindEaseDevApp());
 }

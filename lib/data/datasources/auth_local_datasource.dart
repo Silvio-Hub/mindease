@@ -13,7 +13,7 @@ class AuthLocalDataSource {
       return User(
         id: data['id'] as String,
         email: data['email'] as String,
-        name: data['name'] as String,
+        fullName: (data['fullName'] ?? data['name'] ?? '') as String,
       );
     }
     return null;
@@ -23,7 +23,7 @@ class AuthLocalDataSource {
     await box.put(userKey, {
       'id': user.id,
       'email': user.email,
-      'name': user.name,
+      'fullName': user.fullName,
     });
   }
 

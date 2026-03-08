@@ -7,8 +7,9 @@ class SuccessPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final brand = Brand.of(context);
     return Scaffold(
-      backgroundColor: Brand.neutralBg,
+      backgroundColor: brand.neutralBg,
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -18,12 +19,8 @@ class SuccessPage extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 40,
-                  backgroundColor: Brand.success,
-                  child: const Icon(
-                    Icons.check,
-                    color: Brand.textWhite,
-                    size: 40,
-                  ),
+                  backgroundColor: brand.success,
+                  child: Icon(Icons.check, color: brand.textWhite, size: 40),
                 ),
                 const SizedBox(height: 16),
                 Text('Ótimo trabalho.', style: theme.textTheme.headlineSmall),

@@ -8,16 +8,14 @@ class FocusPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brand = Brand.of(context);
     return Scaffold(
-      backgroundColor: Brand.backgroundFocus,
+      backgroundColor: brand.backgroundFocus,
       appBar: AppBar(title: const Text('Foco')),
       body: SafeArea(
         child: Center(
           child: BlocProvider(
-            create: (_) => PomodoroCubit(
-              work: const Duration(minutes: 25),
-              rest: const Duration(minutes: 5),
-            ),
+            create: (_) => PomodoroCubit(focusMinutes: 25),
             child: BlocBuilder<PomodoroCubit, PomodoroState>(
               builder: (ctx, state) {
                 final minutes = state.remaining.inMinutes
@@ -71,9 +69,9 @@ class FocusPage extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Brand.primary,
+        backgroundColor: brand.primary,
         onPressed: () {},
-        child: const Icon(Icons.add, color: Brand.textWhite),
+        child: Icon(Icons.add, color: brand.textWhite),
       ),
     );
   }

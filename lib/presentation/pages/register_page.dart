@@ -94,20 +94,21 @@ class _RegisterViewState extends State<_RegisterView> {
 
   @override
   Widget build(BuildContext context) {
+    final brand = Brand.of(context);
     return Scaffold(
-      backgroundColor: Brand.backgroundGrey,
+      backgroundColor: brand.backgroundGrey,
       appBar: AppBar(
-        backgroundColor: Brand.transparent,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         title: Row(
           children: [
-            const Icon(Icons.spa, color: Brand.primary),
+            Icon(Icons.spa, color: brand.primary),
             const SizedBox(width: 8),
             Text(
               'MindEase Focus',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: Brand.textMain,
+                color: brand.textMain,
               ),
             ),
           ],
@@ -119,7 +120,7 @@ class _RegisterViewState extends State<_RegisterView> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
-                backgroundColor: Brand.error,
+                backgroundColor: brand.error,
               ),
             );
           } else if (state is RegisterSuccess) {
@@ -136,16 +137,16 @@ class _RegisterViewState extends State<_RegisterView> {
               children: [
                 Card(
                   elevation: 0,
-                  color: Brand.transparent,
+                  color: Colors.transparent,
                   child: Container(
                     constraints: const BoxConstraints(maxWidth: 400),
                     padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: Brand.surface.withValues(alpha: 0.9),
+                      color: brand.surface.withValues(alpha: 0.9),
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Brand.shadow,
+                          color: brand.shadow,
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
@@ -163,7 +164,7 @@ class _RegisterViewState extends State<_RegisterView> {
                             style: Theme.of(context).textTheme.headlineSmall
                                 ?.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  color: Brand.textMain,
+                                  color: brand.textMain,
                                 ),
                           ),
                           const SizedBox(height: 8),
@@ -171,7 +172,7 @@ class _RegisterViewState extends State<_RegisterView> {
                             'Sua jornada para o foco e bem-estar começa aqui.',
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: Brand.textSecondary),
+                                ?.copyWith(color: brand.textSecondary),
                           ),
                           const SizedBox(height: 32),
 
@@ -183,7 +184,7 @@ class _RegisterViewState extends State<_RegisterView> {
                                 style: Theme.of(context).textTheme.labelMedium
                                     ?.copyWith(
                                       fontWeight: FontWeight.bold,
-                                      color: Brand.textMain,
+                                      color: brand.textMain,
                                     ),
                               ),
                               const SizedBox(height: 8),
@@ -204,34 +205,32 @@ class _RegisterViewState extends State<_RegisterView> {
                                   decoration: InputDecoration(
                                     hintText: 'Digite seu nome completo',
                                     filled: true,
-                                    fillColor: Brand.backgroundAlt,
+                                    fillColor: brand.backgroundAlt,
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
                                       borderSide: BorderSide.none,
                                     ),
                                     errorBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
-                                      borderSide: const BorderSide(
-                                        color: Brand.error,
+                                      borderSide: BorderSide(
+                                        color: brand.error,
                                       ),
                                     ),
                                     focusedErrorBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
-                                      borderSide: const BorderSide(
-                                        color: Brand.error,
+                                      borderSide: BorderSide(
+                                        color: brand.error,
                                       ),
                                     ),
-                                    errorStyle: const TextStyle(
-                                      color: Brand.error,
-                                    ),
+                                    errorStyle: TextStyle(color: brand.error),
                                     contentPadding: const EdgeInsets.symmetric(
                                       horizontal: 16,
                                       vertical: 16,
                                     ),
                                     suffixIcon: _nameTouched && !_isNameValid
-                                        ? const Icon(
+                                        ? Icon(
                                             Icons.error_outline,
-                                            color: Brand.error,
+                                            color: brand.error,
                                           )
                                         : null,
                                   ),
@@ -256,7 +255,7 @@ class _RegisterViewState extends State<_RegisterView> {
                                 style: Theme.of(context).textTheme.labelMedium
                                     ?.copyWith(
                                       fontWeight: FontWeight.bold,
-                                      color: Brand.textMain,
+                                      color: brand.textMain,
                                     ),
                               ),
                               const SizedBox(height: 8),
@@ -277,34 +276,32 @@ class _RegisterViewState extends State<_RegisterView> {
                                   decoration: InputDecoration(
                                     hintText: 'Digite seu e-mail',
                                     filled: true,
-                                    fillColor: Brand.backgroundAlt,
+                                    fillColor: brand.backgroundAlt,
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
                                       borderSide: BorderSide.none,
                                     ),
                                     errorBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
-                                      borderSide: const BorderSide(
-                                        color: Brand.error,
+                                      borderSide: BorderSide(
+                                        color: brand.error,
                                       ),
                                     ),
                                     focusedErrorBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
-                                      borderSide: const BorderSide(
-                                        color: Brand.error,
+                                      borderSide: BorderSide(
+                                        color: brand.error,
                                       ),
                                     ),
-                                    errorStyle: const TextStyle(
-                                      color: Brand.error,
-                                    ),
+                                    errorStyle: TextStyle(color: brand.error),
                                     contentPadding: const EdgeInsets.symmetric(
                                       horizontal: 16,
                                       vertical: 16,
                                     ),
                                     suffixIcon: _emailTouched && !_isEmailValid
-                                        ? const Icon(
+                                        ? Icon(
                                             Icons.error_outline,
-                                            color: Brand.error,
+                                            color: brand.error,
                                           )
                                         : null,
                                   ),
@@ -333,7 +330,7 @@ class _RegisterViewState extends State<_RegisterView> {
                                 style: Theme.of(context).textTheme.labelMedium
                                     ?.copyWith(
                                       fontWeight: FontWeight.bold,
-                                      color: Brand.textMain,
+                                      color: brand.textMain,
                                     ),
                               ),
                               const SizedBox(height: 8),
@@ -354,35 +351,33 @@ class _RegisterViewState extends State<_RegisterView> {
                                   decoration: InputDecoration(
                                     hintText: 'No mínimo 8 caracteres',
                                     filled: true,
-                                    fillColor: Brand.backgroundAlt,
+                                    fillColor: brand.backgroundAlt,
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
                                       borderSide: BorderSide.none,
                                     ),
                                     errorBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
-                                      borderSide: const BorderSide(
-                                        color: Brand.error,
+                                      borderSide: BorderSide(
+                                        color: brand.error,
                                       ),
                                     ),
                                     focusedErrorBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
-                                      borderSide: const BorderSide(
-                                        color: Brand.error,
+                                      borderSide: BorderSide(
+                                        color: brand.error,
                                       ),
                                     ),
-                                    errorStyle: const TextStyle(
-                                      color: Brand.error,
-                                    ),
+                                    errorStyle: TextStyle(color: brand.error),
                                     contentPadding: const EdgeInsets.symmetric(
                                       horizontal: 16,
                                       vertical: 16,
                                     ),
                                     suffixIcon:
                                         _passwordTouched && !_isPasswordValid
-                                        ? const Icon(
+                                        ? Icon(
                                             Icons.error_outline,
-                                            color: Brand.error,
+                                            color: brand.error,
                                           )
                                         : IconButton(
                                             icon: Icon(
@@ -390,7 +385,7 @@ class _RegisterViewState extends State<_RegisterView> {
                                                   ? Icons.visibility_outlined
                                                   : Icons
                                                         .visibility_off_outlined,
-                                              color: Brand.textSecondary,
+                                              color: brand.textSecondary,
                                             ),
                                             onPressed: () {
                                               setState(() {
@@ -431,8 +426,8 @@ class _RegisterViewState extends State<_RegisterView> {
                                       ? _onRegisterPressed
                                       : null,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Brand.primary,
-                                    disabledBackgroundColor: Brand.primary
+                                    backgroundColor: brand.primary,
+                                    disabledBackgroundColor: brand.primary
                                         .withValues(alpha: 0.5),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
@@ -444,7 +439,7 @@ class _RegisterViewState extends State<_RegisterView> {
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
-                                      color: Brand.textWhite.withValues(
+                                      color: brand.textWhite.withValues(
                                         alpha: _isFormValid ? 1.0 : 0.7,
                                       ),
                                     ),
@@ -465,7 +460,7 @@ class _RegisterViewState extends State<_RegisterView> {
                                 Text(
                                   'Já tem uma conta? ',
                                   style: Theme.of(context).textTheme.bodyMedium
-                                      ?.copyWith(color: Brand.textSecondary),
+                                      ?.copyWith(color: brand.textSecondary),
                                 ),
                                 GestureDetector(
                                   onTap: () {
@@ -481,7 +476,7 @@ class _RegisterViewState extends State<_RegisterView> {
                                         .textTheme
                                         .bodyMedium
                                         ?.copyWith(
-                                          color: Brand.tertiary,
+                                          color: brand.tertiary,
                                           fontWeight: FontWeight.bold,
                                           decoration: TextDecoration.underline,
                                         ),
@@ -500,7 +495,7 @@ class _RegisterViewState extends State<_RegisterView> {
                   '© 2026 MindEase Focus. Projetado para sua tranquilidade.',
                   style: Theme.of(
                     context,
-                  ).textTheme.bodySmall?.copyWith(color: Brand.textSecondary),
+                  ).textTheme.bodySmall?.copyWith(color: brand.textSecondary),
                 ),
               ],
             ),

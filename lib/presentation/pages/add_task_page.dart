@@ -4,7 +4,9 @@ import 'package:mindease/core/constants/brand.dart';
 import 'package:mindease/domain/entities/task.dart';
 
 class AddTaskPage extends StatefulWidget {
-  const AddTaskPage({super.key});
+  final int initialDateOption;
+
+  const AddTaskPage({super.key, this.initialDateOption = 0});
 
   @override
   State<AddTaskPage> createState() => _AddTaskPageState();
@@ -14,11 +16,17 @@ class _AddTaskPageState extends State<AddTaskPage> {
   final _titleCtrl = TextEditingController();
   final _stepCtrls = List.generate(3, (_) => TextEditingController());
 
-  int _estimateMinutes = 30;
+  FocusDuration _focusDuration = FocusDuration.medium;
   TaskEnergy _energy = TaskEnergy.medium;
 
-  int _dateOption = 1;
+  late int _dateOption;
   DateTime? _selectedCustomDate;
+
+  @override
+  void initState() {
+    super.initState();
+    _dateOption = widget.initialDateOption;
+  }
 
   @override
   void dispose() {
@@ -50,17 +58,18 @@ class _AddTaskPageState extends State<AddTaskPage> {
 
     Navigator.pop(context, {
       'title': _titleCtrl.text.trim(),
-      'steps': _stepCtrls
+      'subtasks': _stepCtrls
           .map((c) => c.text.trim())
           .where((s) => s.isNotEmpty)
           .toList(),
-      'estimate': _estimateMinutes,
+      'focusDuration': _focusDuration,
       'energy': _energy,
-      'dueDate': dueDate,
+      'scheduledFor': dueDate,
     });
   }
 
   Future<void> _pickDate() async {
+    final brand = Brand.of(context);
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
@@ -70,10 +79,10 @@ class _AddTaskPageState extends State<AddTaskPage> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Brand.primary,
-              onPrimary: Brand.textWhite,
-              onSurface: Brand.textMain,
+            colorScheme: ColorScheme.light(
+              primary: brand.primary,
+              onPrimary: brand.textWhite,
+              onSurface: brand.textMain,
             ),
           ),
           child: child!,
@@ -91,8 +100,9 @@ class _AddTaskPageState extends State<AddTaskPage> {
 
   @override
   Widget build(BuildContext context) {
+    final brand = Brand.of(context);
     return Scaffold(
-      backgroundColor: Brand.surface,
+      backgroundColor: brand.surface,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -107,17 +117,17 @@ class _AddTaskPageState extends State<AddTaskPage> {
                     icon: const Icon(Icons.arrow_back_rounded),
                     padding: EdgeInsets.zero,
                     alignment: Alignment.centerLeft,
-                    color: Brand.textSecondary,
+                    color: brand.textSecondary,
                   ),
                   Center(
                     child: Column(
                       children: [
-                        const Text(
+                        Text(
                           'Criar nova tarefa',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: Brand.textMain,
+                            color: brand.textMain,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -125,7 +135,7 @@ class _AddTaskPageState extends State<AddTaskPage> {
                           'Dê um passo de cada vez.',
                           style: TextStyle(
                             fontSize: 14,
-                            color: Brand.textSecondary,
+                            color: brand.textSecondary,
                           ),
                         ),
                       ],
@@ -141,14 +151,14 @@ class _AddTaskPageState extends State<AddTaskPage> {
                 controller: _titleCtrl,
                 decoration: InputDecoration(
                   hintText: 'Ex: Estudar matemática',
-                  hintStyle: TextStyle(color: Brand.textLight),
+                  hintStyle: TextStyle(color: brand.textLight),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Brand.border),
+                    borderSide: BorderSide(color: brand.border),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Brand.primary),
+                    borderSide: BorderSide(color: brand.primary),
                   ),
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -168,7 +178,7 @@ class _AddTaskPageState extends State<AddTaskPage> {
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: Brand.primary.withValues(alpha: 0.8),
+                      color: brand.primary.withValues(alpha: 0.8),
                       letterSpacing: 1.0,
                     ),
                   ),
@@ -186,20 +196,20 @@ class _AddTaskPageState extends State<AddTaskPage> {
                           : index == 1
                           ? 'Segundo passo...'
                           : 'Terceiro passo...',
-                      hintStyle: TextStyle(color: Brand.textLight),
+                      hintStyle: TextStyle(color: brand.textLight),
                       prefixIcon: Padding(
                         padding: const EdgeInsets.all(12),
                         child: Container(
                           width: 20,
                           height: 20,
                           decoration: BoxDecoration(
-                            border: Border.all(color: Brand.border),
+                            border: Border.all(color: brand.border),
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
                       ),
                       filled: true,
-                      fillColor: Brand.backgroundAlt,
+                      fillColor: brand.backgroundAlt,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
@@ -210,10 +220,7 @@ class _AddTaskPageState extends State<AddTaskPage> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(
-                          color: Brand.primary,
-                          width: 1,
-                        ),
+                        borderSide: BorderSide(color: brand.primary, width: 1),
                       ),
                       contentPadding: const EdgeInsets.symmetric(vertical: 14),
                     ),
@@ -227,7 +234,7 @@ class _AddTaskPageState extends State<AddTaskPage> {
               const SizedBox(height: 4),
               Text(
                 'Quanto de esforço essa tarefa pede de você agora?',
-                style: TextStyle(fontSize: 12, color: Brand.textSecondary),
+                style: TextStyle(fontSize: 12, color: brand.textSecondary),
               ),
               const SizedBox(height: 12),
               Row(
@@ -263,7 +270,7 @@ class _AddTaskPageState extends State<AddTaskPage> {
               const SizedBox(height: 4),
               Text(
                 'Defina uma data para manter o foco.',
-                style: TextStyle(fontSize: 12, color: Brand.textSecondary),
+                style: TextStyle(fontSize: 12, color: brand.textSecondary),
               ),
               const SizedBox(height: 12),
               Row(
@@ -308,7 +315,7 @@ class _AddTaskPageState extends State<AddTaskPage> {
                       vertical: 14,
                     ),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Brand.border),
+                      border: Border.all(color: brand.border),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
@@ -316,7 +323,7 @@ class _AddTaskPageState extends State<AddTaskPage> {
                         Icon(
                           Icons.calendar_today_outlined,
                           size: 20,
-                          color: Brand.textSecondary,
+                          color: brand.textSecondary,
                         ),
                         const SizedBox(width: 12),
                         Text(
@@ -325,10 +332,7 @@ class _AddTaskPageState extends State<AddTaskPage> {
                                   'dd/MM/yyyy',
                                 ).format(_selectedCustomDate!)
                               : 'Selecione uma data',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Brand.textMain,
-                          ),
+                          style: TextStyle(fontSize: 14, color: brand.textMain),
                         ),
                       ],
                     ),
@@ -345,32 +349,37 @@ class _AddTaskPageState extends State<AddTaskPage> {
                   Expanded(
                     child: _SelectableButton(
                       label: '15m',
-                      isSelected: _estimateMinutes == 15,
-                      onTap: () => setState(() => _estimateMinutes = 15),
+                      isSelected: _focusDuration == FocusDuration.short,
+                      onTap: () =>
+                          setState(() => _focusDuration = FocusDuration.short),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: _SelectableButton(
                       label: '30m',
-                      isSelected: _estimateMinutes == 30,
-                      onTap: () => setState(() => _estimateMinutes = 30),
+                      isSelected: _focusDuration == FocusDuration.medium,
+                      onTap: () =>
+                          setState(() => _focusDuration = FocusDuration.medium),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: _SelectableButton(
                       label: '45m',
-                      isSelected: _estimateMinutes == 45,
-                      onTap: () => setState(() => _estimateMinutes = 45),
+                      isSelected: _focusDuration == FocusDuration.long,
+                      onTap: () =>
+                          setState(() => _focusDuration = FocusDuration.long),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: _SelectableButton(
                       label: '60m',
-                      isSelected: _estimateMinutes == 60,
-                      onTap: () => setState(() => _estimateMinutes = 60),
+                      isSelected: _focusDuration == FocusDuration.extraLong,
+                      onTap: () => setState(
+                        () => _focusDuration = FocusDuration.extraLong,
+                      ),
                     ),
                   ),
                 ],
@@ -384,8 +393,8 @@ class _AddTaskPageState extends State<AddTaskPage> {
                 child: ElevatedButton.icon(
                   onPressed: _onSave,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Brand.primary,
-                    foregroundColor: Brand.textWhite,
+                    backgroundColor: brand.primary,
+                    foregroundColor: brand.textWhite,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -403,7 +412,7 @@ class _AddTaskPageState extends State<AddTaskPage> {
                 child: TextButton(
                   onPressed: () => Navigator.pop(context),
                   style: TextButton.styleFrom(
-                    foregroundColor: Brand.textSecondary,
+                    foregroundColor: brand.textSecondary,
                   ),
                   child: const Text('Cancelar', style: TextStyle(fontSize: 16)),
                 ),
@@ -417,12 +426,13 @@ class _AddTaskPageState extends State<AddTaskPage> {
   }
 
   Widget _buildSectionLabel(String text) {
+    final brand = Brand.of(context);
     return Text(
       text,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.bold,
-        color: Brand.textMain,
+        color: brand.textMain,
       ),
     );
   }
@@ -443,15 +453,16 @@ class _SelectableButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brand = Brand.of(context);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? Brand.selectedBg : Brand.surface,
+          color: isSelected ? brand.selectedBg : brand.surface,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: isSelected ? Brand.primary : Brand.border),
+          border: Border.all(color: isSelected ? brand.primary : brand.border),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -460,7 +471,7 @@ class _SelectableButton extends StatelessWidget {
               Icon(
                 icon,
                 size: 16,
-                color: isSelected ? Brand.primary : Brand.textSecondary,
+                color: isSelected ? brand.primary : brand.textSecondary,
               ),
               const SizedBox(width: 8),
             ],
@@ -469,7 +480,7 @@ class _SelectableButton extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isSelected ? Brand.primary : Brand.textSecondary,
+                color: isSelected ? brand.primary : brand.textSecondary,
               ),
             ),
           ],

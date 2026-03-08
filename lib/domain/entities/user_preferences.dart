@@ -1,3 +1,9 @@
+import 'package:mindease/domain/entities/task.dart';
+
+enum InfoDensity { simples, equilibrada, detalhada }
+
+enum AppThemeMode { system, light, dark }
+
 class UserPreferences {
   final bool focusMode;
   final bool highContrast;
@@ -5,6 +11,9 @@ class UserPreferences {
   final double spacingScale;
   final bool summaryMode;
   final bool animationsEnabled;
+  final TaskEnergy? energyLevel;
+  final InfoDensity? infoDensity;
+  final AppThemeMode themeMode;
 
   const UserPreferences({
     required this.focusMode,
@@ -13,6 +22,9 @@ class UserPreferences {
     required this.spacingScale,
     required this.summaryMode,
     required this.animationsEnabled,
+    this.energyLevel,
+    this.infoDensity,
+    this.themeMode = AppThemeMode.system,
   });
 
   UserPreferences copyWith({
@@ -22,6 +34,9 @@ class UserPreferences {
     double? spacingScale,
     bool? summaryMode,
     bool? animationsEnabled,
+    TaskEnergy? energyLevel,
+    InfoDensity? infoDensity,
+    AppThemeMode? themeMode,
   }) {
     return UserPreferences(
       focusMode: focusMode ?? this.focusMode,
@@ -30,6 +45,9 @@ class UserPreferences {
       spacingScale: spacingScale ?? this.spacingScale,
       summaryMode: summaryMode ?? this.summaryMode,
       animationsEnabled: animationsEnabled ?? this.animationsEnabled,
+      energyLevel: energyLevel ?? this.energyLevel,
+      infoDensity: infoDensity ?? this.infoDensity,
+      themeMode: themeMode ?? this.themeMode,
     );
   }
 }
